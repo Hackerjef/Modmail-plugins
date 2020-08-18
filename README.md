@@ -1,2 +1,2 @@
 # Modmail-plugins
- Custom plugin used by me for kyb3r's modmail bot
+ Custom plugins used by me for kyb3r's modmail bot
