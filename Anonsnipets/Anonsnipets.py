@@ -1,6 +1,9 @@
 from core import checks
+from core.utils import create_not_found_embed
 from core.models import PermissionLevel
 from discord.ext import commands
+
+
 
 class Anonsnipetsplugin(commands.Cog):
     def __init__(self, bot):
@@ -14,7 +17,8 @@ class Anonsnipetsplugin(commands.Cog):
             snippet = self.bot.snippets.get(name, None)
 
             if snippet is None:
-                return await ctx.send('No snippet found')
+                embed = create_not_found_embed(name, self.bot.snippets.keys(), "Snippet")
+                return await ctx.send(embed=embed)
 
             ctx.message.content = snippet
 
