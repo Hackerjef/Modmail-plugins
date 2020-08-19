@@ -6,6 +6,7 @@ from discord.utils import snowflake_time
 
 
 class Enhancedgenesisplugin(commands.Cog):
+    """Refined genesis plugin"""
     def __init__(self, bot):
         self.bot = bot
 

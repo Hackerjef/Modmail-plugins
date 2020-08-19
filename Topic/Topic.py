@@ -5,6 +5,7 @@ from discord.ext import commands
 logger = getLogger(__name__)
 
 class Topicplugin(commands.Cog):
+    """Plugin to change thread Topics without breaking modmail"""
     def __init__(self, bot):
         self.bot = bot
 
@@ -12,6 +13,7 @@ class Topicplugin(commands.Cog):
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @checks.thread_only()
     async def topic(self, ctx, *topic):
+        """change thread Topics"""
         logger.info("Setting thread topic")
         topic_complete = " ".join(topic)
         await self.bot.get_channel(ctx.thread.channel.id).edit(topic=f"User ID: {ctx.thread._recipient.id} | {topic_complete}")

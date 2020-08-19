@@ -6,6 +6,7 @@ from discord.ext import commands
 
 
 class Anonsnipetsplugin(commands.Cog):
+    """Plugin to allow Anon snipets without making aliases for every one of them"""
     def __init__(self, bot):
         self.bot = bot
 
@@ -13,6 +14,7 @@ class Anonsnipetsplugin(commands.Cog):
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @checks.thread_only()
     async def anon(self, ctx, name: str.lower = None):
+        """Anon snippets"""
         if name is not None:
             snippet = self.bot.snippets.get(name, None)
 
