@@ -16,7 +16,7 @@ class Anonsnipetsplugin(commands.Cog):
             if snippet is None:
                 return await ctx.send('No snippet found')
 
-            ctx.message.content = f"{self.bot.prefix}anonreply {snippet}"
+            ctx.message.content = snippet
 
             async with ctx.typing():
                 await ctx.thread.reply(ctx.message, anonymous=True)
