@@ -6,7 +6,7 @@ class Anonsnipetsplugin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=['a'], pass_contex=T)
+    @commands.command(aliases=['a'])
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @checks.thread_only()
     async def anon(self, ctx, name: str.lower = None):
