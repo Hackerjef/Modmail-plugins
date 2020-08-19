@@ -1,5 +1,5 @@
 from core import checks
-from core.models import getLogger
+from core.models import getLogger, PermissionLevel
 from discord.ext import commands
 
 logger = getLogger(__name__)
@@ -9,6 +9,7 @@ class Topicplugin(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @checks.has_permissions(PermissionLevel.MODERATOR)
     @checks.thread_only()
     async def topic(self, ctx, *topic):
         logger.info("Setting thread topic")
