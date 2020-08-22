@@ -6,8 +6,7 @@ Hello! These are custom plugins that I made for [kyb3r's modmail](https://github
 
 As per all plugins for kyb3r's modmail, most need to be added by `[p] add ...` 
 
-below is a table for all the current plugins that I've made/description/how to install.
-
+below is a table for all the current plugins that are currently available
 ### Plugins: 
 
 <table>
