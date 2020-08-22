@@ -38,7 +38,8 @@ below is a table for all the current plugins that are currently available
 
 ## **Note:**
 
-Due to the nature of me adding new things or changing things, these plugins may be upgraded at one point/ to update please do `[p] update ..`
+Due to the nature of me adding new things or changing things, 
+these plugins may be upgraded at one point to update please do `[p] update ..`
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
