@@ -22,17 +22,17 @@ below is a table for all the current plugins that I've made/description/how to i
   <tr>
     <td>Anonsnipets</td>
     <td><code>Hackerjef/Modmail-plugins/Anonsnipets<code></td>
-    <td><a href="../../wiki/Anonsnipets">Link</a></td>
+    <td><a href="../../wiki/Wiki-one-page#anonsnipets">Link</a></td>
   </tr>
   <tr>
     <td>Enhancedgenesis</td>
     <td><code>Hackerjef/Modmail-plugins/Enhancedgenesis</code></td>
-    <td><a href="../../wiki/Enhancedgenesis">Link</a></td>
+    <td><a href="../../wiki/Wiki-one-page#enhancedgenesis">Link</a></td>
   </tr>
   <tr>
     <td>Topic</td>
     <td><code>Hackerjef/Modmail-plugins/Topic</code></td>
-    <td><a href="../../wiki/Topic">Link</a></td>
+    <td><a href="../../wiki/Wiki-one-page#topic">Link</a></td>
   </tr>
 </tbody>
 </table>
