@@ -5,16 +5,16 @@ from discord.ext import commands
 
 
 
-class Anonsnipetsplugin(commands.Cog):
-    """Plugin to allow Anon snipets without making aliases for every one of them"""
+class Anonsnippetsplugin(commands.Cog):
+    """Plugin to allow Anonymous snippets without making aliases for every one of them"""
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=['a'])
+    #@commands.command(aliases=['a']) // Let users decide that
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @checks.thread_only()
     async def anon(self, ctx, name: str.lower = None):
-        """Anon snippets"""
+        """Anonymous snippets"""
         if name is not None:
             snippet = self.bot.snippets.get(name, None)
 
@@ -29,4 +29,4 @@ class Anonsnipetsplugin(commands.Cog):
             
 
 def setup(bot):
-    bot.add_cog(Anonsnipetsplugin(bot))
+    bot.add_cog(Anonsnippetsplugin(bot))
