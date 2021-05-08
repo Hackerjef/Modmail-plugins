@@ -42,8 +42,7 @@ class Enhancedgenesisplugin(commands.Cog):
 
 
         embed.description = "\n".join(embed_description)
-        # clear content, then subsutute new embed
-        await thread.genesis_message.edit(content='', embed=embed)
+        await thread.genesis_message.edit(content=thread.genesis_message.content, embed=embed)
 
 def setup(bot):
     bot.add_cog(Enhancedgenesisplugin(bot))
