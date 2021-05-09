@@ -309,7 +309,7 @@ class DragoryMigrate(commands.Cog):
             converted["_id"] = key
             await self.bot.db.logs.insert_one(converted)
             log_url = f"{self.bot.config.log_url.strip('/')}{prefix}/{key}"
-            print(f"Posted thread log: {log_url}")
+            print(f"Posted thread log: {log_url}") # uwu
             self.output += f"Posted thread log: {log_url}\n"
 
         # Threads
