@@ -163,10 +163,6 @@ class ThreadMessage:
 
     @classmethod
     async def from_data(cls, bot, data):
-        print("~~~~~~~Fuck~~~~~~~~~~")
-        print(data[7])
-        print(data[8])
-        print("~~~~~~~Fuck~~~~~~~~~~")
         # id
         # thread_id
         # message_type
@@ -179,10 +175,10 @@ class ThreadMessage:
 
         self = cls()
         self.bot = bot
-        self.id = data[1]
-        self.type_ = self.types[data[2]]
+        self.id = data[0]
+        self.type_ = self.types[data[1]]
 
-        user_id = data[3]
+        user_id = data[2]
         if user_id:
             self.author = bot.get_user(int(user_id))
             if self.author is None:
@@ -198,7 +194,7 @@ class ThreadMessage:
         else:
             self.author = None
 
-        self.body = data[5]
+        self.body = data[4]
 
         pattern = re.compile(r"http://[\d.]+:\d+/attachments/\d+/.*")
         self.attachments = pattern.findall(str(self.body))
@@ -208,9 +204,9 @@ class ThreadMessage:
         else:
             self.content = self.body
 
-        self.is_anonymous = data[6]
-        self.dm_message_id = data[7]
-        self.created_at = datetime.fromisoformat(data[8])
+        self.is_anonymous = data[5]
+        self.dm_message_id = data[6]
+        self.created_at = datetime.fromisoformat(data[7])
         self.attachments = pattern.findall(str(self.body))
         return self
 
