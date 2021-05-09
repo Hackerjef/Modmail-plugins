@@ -1,6 +1,6 @@
 # Modmail plugins
 
-Hello! These are custom plugins that I made for [kyb3r's modmail](https://github.com/kyb3r/modmail)
+Hello! These are custom plugins that I made/edited for [kyb3r's modmail](https://github.com/kyb3r/modmail)
 
 ## Installation
 
