@@ -163,6 +163,7 @@ class ThreadMessage:
 
     @classmethod
     async def from_data(cls, bot, data):
+        print(data[7])
         print(data[8])
         # id
         # thread_id
