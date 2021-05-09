@@ -40,7 +40,6 @@ class Enhancedgenesisplugin(commands.Cog):
             thread_word = "Thread" if log_count == 1 else "Threads"
             embed_description.append(f"**{thread_word} Created:** {str(log_count)}")
 
-
         embed.description = "\n".join(embed_description)
         await thread.genesis_message.edit(content=thread.genesis_message.content, embed=embed)
 
