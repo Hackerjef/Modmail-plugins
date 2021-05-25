@@ -298,7 +298,7 @@ class DragoryMigrateRemux(commands.Cog):
 
         tasks = []
 
-        prefix = os.getenv("LOG_URL_PREFIX", "/logs")
+        prefix = self.bot.config["log_url_prefix"].strip("/")
         if prefix == "NONE":
             prefix = ""
 
