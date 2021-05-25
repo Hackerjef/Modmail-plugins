@@ -309,7 +309,7 @@ class DragoryMigrateRemux(commands.Cog):
             converted["key"] = key
             converted["_id"] = key
             await self.bot.db.logs.insert_one(converted)
-            log_url = f"{self.bot.config.log_url.strip('/')}{prefix}/{key}"
+            log_url = f"{self.bot.config['log_url'].strip('/')}{prefix}/{key}"
             print(f"Posted thread log: {log_url}")
             self.output += f"Posted thread log: {log_url}\n"
 
