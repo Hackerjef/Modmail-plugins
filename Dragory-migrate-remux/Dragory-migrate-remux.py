@@ -146,6 +146,9 @@ class ThreadMessage:
         4: "to_user",
         5: "legacy",
         6: "command",
+        7: "system_to_user",
+        8: "reply_edited",
+        9: "reply_deleted"
     }
 
     __slots__ = [
