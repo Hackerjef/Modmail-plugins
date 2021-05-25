@@ -175,10 +175,10 @@ class ThreadMessage:
 
         self = cls()
         self.bot = bot
-        self.id = data[0]
-        self.type_ = self.types[data[1]]
+        self.id = data[1]
+        self.type_ = self.types[data[2]]
 
-        user_id = data[2]
+        user_id = data[3]
         if user_id:
             self.author = bot.get_user(int(user_id))
             if self.author is None:
@@ -194,7 +194,7 @@ class ThreadMessage:
         else:
             self.author = None
 
-        self.body = data[4]
+        self.body = data[16]
 
         pattern = re.compile(r"http://[\d.]+:\d+/attachments/\d+/.*")
         self.attachments = pattern.findall(str(self.body))
@@ -229,11 +229,11 @@ class ThreadMessage:
             }
 
 
-class DragoryMigrate(commands.Cog):
+class DragoryMigrateRemux(commands.Cog):
     """
     Cog that migrates thread logs from [Dragory's](https://github.com/dragory/modmailbot) 
     modmail bot to this one.
-    Fixed/edited by Nadie uwu
+    Fixed/edited by Nadie
     """
 
     def __init__(self, bot):
@@ -307,7 +307,7 @@ class DragoryMigrate(commands.Cog):
             converted["_id"] = key
             await self.bot.db.logs.insert_one(converted)
             log_url = f"{self.bot.config.log_url.strip('/')}{prefix}/{key}"
-            print(f"Posted thread log: {log_url}") # uwu
+            print(f"Posted thread log: {log_url}")
             self.output += f"Posted thread log: {log_url}\n"
 
         # Threads
@@ -320,14 +320,14 @@ class DragoryMigrate(commands.Cog):
             await self.bot.config.update()
 
             async with self.bot.session.post(
-                "https://hasteb.in/documents", data=self.output
+                "https://hastebin.com/documents", data=self.output
             ) as resp:
                 key = (await resp.json())["key"]
 
-            await ctx.send(f"Done. Logs: https://hasteb.in/{key}")
+            await ctx.send(f"Done. Logs: https://hastebin.com/{key}")
             conn.close()
             os.remove("dragorydb.sqlite")
 
 
 def setup(bot):
-    bot.add_cog(DragoryMigrate(bot))
+    bot.add_cog(DragoryMigrateRemux(bot))

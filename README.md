@@ -33,6 +33,11 @@ below is a table for all the current plugins that are currently available
     <td><code>Hackerjef/Modmail-plugins/Topic</code></td>
     <td><a href="../../wiki/Wiki-one-page#topic">Link</a></td>
   </tr>
+  <tr>
+    <td>Dragory-migrate-remux</td>
+    <td><code>Hackerjef/Modmail-plugins/Dragory-migrate-remux</code></td>
+    <td><a href="../../wiki/Wiki-one-page#dragory-migrate-remux">Link</a></td>
+  </tr>
 </tbody>
 </table>
 
