@@ -3,7 +3,7 @@ import asyncio
 from discord.ext import commands
 
 
-class Nickusercensorplugin(commands.Cog):
+class NameCensorPlugin(commands.Cog):
     """Nick/username censor rawruwuxnuzzles"""
 
     def __init__(self, bot):
@@ -37,4 +37,4 @@ class Nickusercensorplugin(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Nickusercensorplugin(bot))
+    bot.add_cog(NameCensorPlugin(bot))
