@@ -8,13 +8,15 @@ class NameCensorPlugin(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.coll = bot.plugin_db.get_partition(self)
+        self.db = bot.plugin_db.get_partition(self)
         self.enabled = True
         self.whitelist = set()
         asyncio.create_task(self._set_config())
 
     async def _set_config(self):
-        config = await self.coll.find_one({"_id": "config"})
+        config = await self.db.find_one({"_id": "NicknameCensor"})
+        print(config)
+        print(type(config))
         self.enabled = config.get("enabled", True)
         self.redlist_nicknames = set(config.get("redlist_nicknames", []))
         self.redlist_usernames = set(config.get("redlist_usernames", []))
