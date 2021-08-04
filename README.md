@@ -20,7 +20,7 @@ below is a table for all the current plugins that are currently available
 <tbody>
   <tr>
     <td>Anonsnipets</td>
-    <td><code>Hackerjef/Modmail-plugins/Anonsnipets<code></td>
+    <td><code>Hackerjef/Modmail-plugins/Anonsnipets</code></td>
     <td><a href="../../wiki/Wiki-one-page#anonsnipets">Link</a></td>
   </tr>
   <tr>
