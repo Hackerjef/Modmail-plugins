@@ -6,10 +6,9 @@ from core import checks, utils
 from core.models import PermissionLevel
 
 
-class Oauthreplacement(commands.Cog):
+class logviewer2companion(commands.Cog):
     """
-    Oauth replacement with hackerjef/logviewer for self-hosting && multi modmail instance setup (Not required)
-    PLEASE SUPPORT KYB3R AND IF U CAN DO WITHOUT SELF HOSTING, DONT USE THIS PLUGIN - THANK YOU!
+    Companion plugin for https://github.com/hackerjef/logviewer2
     """
 
     def __init__(self, bot):
@@ -79,6 +78,6 @@ class Oauthreplacement(commands.Cog):
 
 
 def setup(bot):
-    print("Removing stock oauth command, remove by uninstalling Oauthreplacement plugin")
+    print("Removing stock oauth command, remove by uninstalling logviewer2companion plugin")
     bot.remove_command('oauth')  # Remove built in usage of oauth before load
-    bot.add_cog(Oauthreplacement(bot))
+    bot.add_cog(logviewer2companion(bot))
