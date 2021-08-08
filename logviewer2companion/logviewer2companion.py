@@ -1,5 +1,6 @@
 import asyncio
 
+import discord
 from discord.ext import commands
 
 from core import checks, utils
@@ -44,40 +45,50 @@ class logviewer2companion(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     @checks.has_permissions(PermissionLevel.OWNER)
-    async def oauth(self, ctx):
+    async def oauth2(self, ctx):
         """
-            Oauth replacement with hackerjef/logviewer for self-hosting && multi modmail instance setup (Not required)
-            PLEASE SUPPORT KYB3R AND IF U CAN DO WITHOUT SELF HOSTING, DONT USE THIS PLUGIN - THANK YOU!
+            Oauth replacement for hackerjef/logviewer2 for self-hosting && multi modmail instance setup (Not required)
+            Please support the patron for kyb3r Thanks! <3
         """
         await ctx.send_help(ctx.command)
 
-    @oauth.command(name="status")
+    @oauth2.command(name="enable")
     @checks.has_permissions(PermissionLevel.OWNER)
-    async def oauth_enable(self, ctx, mode: bool = False):
+    async def oauth_enable(self, ctx):
         """Disable or enable the oauth system.
 
-        Usage: `oauth status enable` / `auth status disable`
+        Usage: `oauth enable` / `auth enable`
         """
-        self.enabled = mode
-        await self._update_config()
-        await ctx.send(("Enabled" if mode else "Disabled") + " oauth.")
 
-    @oauth.command(name="user")
+        self.enabled = not self.enabled
+        await self._update_config()
+        await ctx.send(("Enabled" if self.enabled else "Disabled") + " oauth.")
+
+    @oauth2.command(name="user")
     @checks.has_permissions(PermissionLevel.OWNER)
-    async def oauth_user(self, ctx, user: utils.User, allowed: bool):
+    async def oauth_user(self, ctx, mode: str, user: utils.User):
         if not hasattr(user, "id"):
             raise commands.BadArgument(f'User "{user}" not found')
 
-        if allowed:
+        embed = discord.Embed(color=self.bot.main_color)
+
+        if mode == "add" or mode == "set":
             self.allowed_users.append(user.id)
-        else:
+            await self._update_config()
+            embed.description = f"User {str(user)} ({user.id}) has been added"
+            return await ctx.send(embed=embed)
+        elif mode == "remove" or mode == "rmv":
             self.allowed_users.remove(user.id)
-
-        await self._update_config()
-        await ctx.send(f"{'allowed' if allowed else 'disallowed'} {str(user)} ({user.id}) oauth permission")
-
+            await self._update_config()
+            embed.description = f"User {str(user)} ({user.id}) has been removed"
+            return await ctx.send(embed=embed)
+        elif mode == "status" or mode == "info":
+            verbage = "has" if user.id in self.allowed_users else "doesn't have"
+            embed.description = f"User {str(user)} ({user.id}) {verbage} access to oauth logs"
+            return await ctx.send(embed=embed)
+        else:
+            raise commands.BadArgument("Invalid usage, allowed options `add, remove status`")
 
 def setup(bot):
     print("Removing stock oauth command, remove by uninstalling logviewer2companion plugin")
-    bot.remove_command('oauth')  # Remove built in usage of oauth before load
     bot.add_cog(logviewer2companion(bot))
