@@ -69,12 +69,16 @@ class logviewer2companion(commands.Cog):
     @oauth2.command(name="allowed")
     @checks.has_permissions(PermissionLevel.OWNER)
     async def oauth_allowed_users(self, ctx):
+        """Shows who is allowed to view oauth protected logs
+
+        Usage: `oauth2 allowed`
+        """
         embed = discord.Embed(color=self.bot.main_color)
         embed.title = "Allowed users:"
         description = []
         for uid in self.allowed_users:
             user = self.bot.get_user(uid)
-            description.append(f"{str(user)} - `{user.id}`'")
+            description.append(f"{str(user)} - `{user.id}`")
         embed.description = "\n".join(description)
         return await ctx.send(embed=embed)
 
