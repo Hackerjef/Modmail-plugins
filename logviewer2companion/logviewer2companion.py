@@ -62,13 +62,29 @@ class logviewer2companion(commands.Cog):
 
         self.enabled = not self.enabled
         await self._update_config()
-        await ctx.send(("Enabled" if self.enabled else "Disabled") + " oauth.")
+        embed = discord.Embed(color=self.bot.main_color)
+        embed.description = "Oauth has been " + ("enabled" if self.enabled else "disabled")
+        return await ctx.send(embed=embed)
+
+    @oauth2.command(name="allowed")
+    @checks.has_permissions(PermissionLevel.OWNER)
+    async def oauth_allowed_users(self, ctx):
+        embed = discord.Embed(color=self.bot.main_color)
+        embed.title = "Allowed users:"
+        description = []
+        for uid in self.allowed_users:
+            user = self.bot.get_user(uid)
+            description.append(f"{str(user)} - `{user.id}`'")
+        embed.description = "\n".join(description)
+        return await ctx.send(embed=embed)
 
     @oauth2.command(name="user")
     @checks.has_permissions(PermissionLevel.OWNER)
     async def oauth_user(self, ctx, mode: str, user: utils.User):
-        if not hasattr(user, "id"):
-            raise commands.BadArgument(f'User "{user}" not found')
+        """Gives permissions on who can/cannot see oauth protected logs and checks status on users
+
+        Usage: `oauth2 (add, remove, info) <userID>`
+        """
 
         embed = discord.Embed(color=self.bot.main_color)
 
@@ -89,6 +105,6 @@ class logviewer2companion(commands.Cog):
         else:
             raise commands.BadArgument("Invalid usage, allowed options `add, remove status`")
 
+
 def setup(bot):
-    print("Removing stock oauth command, remove by uninstalling logviewer2companion plugin")
     bot.add_cog(logviewer2companion(bot))
