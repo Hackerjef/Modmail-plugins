@@ -52,12 +52,12 @@ class logviewer2companion(commands.Cog):
         """
         await ctx.send_help(ctx.command)
 
-    @oauth2.command(name="enable")
+    @oauth2.command(name="toggle")
     @checks.has_permissions(PermissionLevel.OWNER)
     async def oauth_enable(self, ctx):
         """Disable or enable the oauth system.
 
-        Usage: `oauth enable` / `auth enable`
+        Usage: `oauth2 toggle`
         """
 
         self.enabled = not self.enabled
