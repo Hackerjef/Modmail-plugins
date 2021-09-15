@@ -18,6 +18,7 @@ class logviewer2companion(commands.Cog):
 
         # settings
         self.enabled = True
+        self.allow_evidence_share = False
         self.allowed_users: list = list()
         asyncio.create_task(self._set_options())
 
@@ -27,6 +28,7 @@ class logviewer2companion(commands.Cog):
             {
                 "$set": {
                     "enabled": self.enabled,
+                    "allow_evidence_share": self.allow_evidence_share,
                     "allowed_users": self.allowed_users,
                 }
             },
@@ -41,7 +43,17 @@ class logviewer2companion(commands.Cog):
             return
 
         self.enabled = config.get("enabled", True)
+        self.allow_evidence_share = config.get("allow_evidence_share", False)
         self.allowed_users = config.get("allowed_users", [])
+
+    @commands.group(invoke_without_command=True)
+    @checks.has_permissions(PermissionLevel.OWNER)
+    async def l2c(self, ctx):
+        """
+            Oauth replacement for hackerjef/logviewer2 for self-hosting && multi modmail instance setup (Not required)
+            Please support the patron for kyb3r Thanks! <3
+        """
+        await ctx.send_help(ctx.command)
 
     @commands.group(invoke_without_command=True)
     @checks.has_permissions(PermissionLevel.OWNER)
@@ -51,6 +63,20 @@ class logviewer2companion(commands.Cog):
             Please support the patron for kyb3r Thanks! <3
         """
         await ctx.send_help(ctx.command)
+
+    @l2c.command(name="evidenceshare")
+    @checks.has_permissions(PermissionLevel.OWNER)
+    async def l2c_evidenceshare(self, ctx):
+        """Disable/enables user of shareable thread links (evidence) without internal messages
+
+        Usage: `l2c evidenceshare`
+        """
+
+        self.allow_evidence_share = not self.allow_evidence_share
+        await self._update_config()
+        embed = discord.Embed(color=self.bot.main_color)
+        embed.description = "Evidence share has been " + ("enabled" if self.allow_evidence_share else "disabled")
+        return await ctx.send(embed=embed)
 
     @oauth2.command(name="toggle")
     @checks.has_permissions(PermissionLevel.OWNER)
