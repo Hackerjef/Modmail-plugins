@@ -84,7 +84,9 @@ class logviewer2companion(commands.Cog):
     @checks.thread_only()
     async def l2c_loglink(self, ctx):
         log = await self.bot.api.get_log(ctx.channel.id)
-        return f"{self.bot.config['log_url'].strip('/')}/evidence/{self.bot.modmail_guild.id}/{log['key']}"
+        embed = discord.Embed(color=self.bot.main_color)
+        embed.description = f"{self.bot.config['log_url'].strip('/')}/evidence/{self.bot.modmail_guild.id}/{log['key']}"
+        return await ctx.send(embed=embed)
 
     @oauth2.command(name="toggle")
     @checks.has_permissions(PermissionLevel.OWNER)
