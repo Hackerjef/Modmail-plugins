@@ -78,6 +78,14 @@ class logviewer2companion(commands.Cog):
         embed.description = "Evidence share has been " + ("enabled" if self.allow_evidence_share else "disabled")
         return await ctx.send(embed=embed)
 
+    @commands.command(aliases=['eloglink'])
+    @l2c.command(name="eloglink")
+    @checks.has_permissions(PermissionLevel.SUPPORTER)
+    @checks.thread_only()
+    async def l2c_loglink(self, ctx):
+        log = await self.bot.api.get_log(ctx.channel.id)
+        return  f"{self.bot.config['log_url'].strip('/')}/evidence/{self.bot.modmail_guild.id}/{log['key']}"
+
     @oauth2.command(name="toggle")
     @checks.has_permissions(PermissionLevel.OWNER)
     async def oauth_enable(self, ctx):
@@ -93,7 +101,7 @@ class logviewer2companion(commands.Cog):
         return await ctx.send(embed=embed)
 
     @oauth2.command(name="allowed")
-    @checks.has_permissions(PermissionLevel.OWNER)
+    @checks.has_permissions(PermissionLevel.SUPPORTER)
     async def oauth_allowed_users(self, ctx):
         """Shows who is allowed to view oauth protected logs
 
