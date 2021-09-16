@@ -79,7 +79,7 @@ class logviewer2companion(commands.Cog):
         return await ctx.send(embed=embed)
 
     @commands.command(aliases=['eloglink'])
-    @l2c.command(name="eloglink")
+    #@l2c.command(name="eloglink")
     @checks.has_permissions(PermissionLevel.SUPPORTER)
     @checks.thread_only()
     async def l2c_loglink(self, ctx):
