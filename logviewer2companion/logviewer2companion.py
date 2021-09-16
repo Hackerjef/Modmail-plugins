@@ -46,7 +46,7 @@ class logviewer2companion(commands.Cog):
         self.allow_evidence_share = config.get("allow_evidence_share", False)
         self.allowed_users = config.get("allowed_users", [])
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(name="l2c", invoke_without_command=True)
     @checks.has_permissions(PermissionLevel.OWNER)
     async def l2c(self, ctx):
         """
@@ -55,7 +55,7 @@ class logviewer2companion(commands.Cog):
         """
         await ctx.send_help(ctx.command)
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(name="oauth2", invoke_without_command=True)
     @checks.has_permissions(PermissionLevel.OWNER)
     async def oauth2(self, ctx):
         """
@@ -84,7 +84,7 @@ class logviewer2companion(commands.Cog):
     @checks.thread_only()
     async def l2c_loglink(self, ctx):
         log = await self.bot.api.get_log(ctx.channel.id)
-        return  f"{self.bot.config['log_url'].strip('/')}/evidence/{self.bot.modmail_guild.id}/{log['key']}"
+        return f"{self.bot.config['log_url'].strip('/')}/evidence/{self.bot.modmail_guild.id}/{log['key']}"
 
     @oauth2.command(name="toggle")
     @checks.has_permissions(PermissionLevel.OWNER)
