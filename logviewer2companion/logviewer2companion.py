@@ -78,15 +78,32 @@ class logviewer2companion(commands.Cog):
         embed.description = "Evidence share has been " + ("enabled" if self.allow_evidence_share else "disabled")
         return await ctx.send(embed=embed)
 
+    # note: Cannot make this a l2c and a root command at the same time, though i could just make another function, ez
     @commands.command(aliases=['eloglink'])
-    #@l2c.command(name="eloglink")
     @checks.has_permissions(PermissionLevel.SUPPORTER)
     @checks.thread_only()
     async def l2c_loglink(self, ctx):
+        """Get evidence based loglink if enabled :)
+
+        Usage: `eloglink`
+        """
+        if not self.allow_evidence_share:
+            return await ctx.send("Cannot get evidence loglink, Please enabled it (<p>l2c evidenceshare)")
+
         log = await self.bot.api.get_log(ctx.channel.id)
         embed = discord.Embed(color=self.bot.main_color)
         embed.description = f"{self.bot.config['log_url'].strip('/')}/evidence/{self.bot.modmail_guild.id}/{log['key']}"
         return await ctx.send(embed=embed)
+
+    @l2c.command(name="eloglink")
+    @checks.has_permissions(PermissionLevel.SUPPORTER)
+    @checks.thread_only()
+    async def l2c_loglink(self, ctx):
+        """Get evidence based loglink if enabled :)
+
+        Usage: `l2c eloglink`
+        """
+        return await self.l2c_loglink(ctx)
 
     @oauth2.command(name="toggle")
     @checks.has_permissions(PermissionLevel.OWNER)
