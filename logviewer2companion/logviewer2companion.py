@@ -63,7 +63,10 @@ class logviewer2companion(commands.Cog):
                     members.append(member.id)
                 self.allowed_roles[str(role)] = members
             else:
-                del self.allowed_roles[str(role)]
+                try:
+                    del self.allowed_roles[str(role)]
+                except KeyError:
+                    pass
 
         await self._update_config()
 
@@ -195,7 +198,10 @@ class logviewer2companion(commands.Cog):
 
         elif mode == "remove" or mode == "rmv":
             if isinstance(target, discord.Role):
-                del self.allowed_roles[str(target.id)]
+                try:
+                    del self.allowed_roles[str(target.id)]
+                except KeyError:
+                    pass
             else:
                 self.allowed_users.remove(target.id)
 
