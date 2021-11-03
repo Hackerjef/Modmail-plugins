@@ -55,7 +55,7 @@ class logviewer2companion(commands.Cog):
         if not g:
             return
 
-        for role in self.allowed_roles:
+        for role in dict(self.allowed_roles):
             grole = g.get_role(int(role))
             if grole:
                 members = []
@@ -178,9 +178,14 @@ class logviewer2companion(commands.Cog):
 
         embed = discord.Embed(color=self.bot.main_color)
 
+        # role is not working :pain
+
         # yes was taken from core/utilitys but it works :)
         if not hasattr(target, "mention"):
             target = self.bot.get_user(target.id) or self.bot.modmail_guild.get_role(target.id)
+
+        if not target:
+            raise commands.BadArgument("Role or user does not exist, please add/remove manualy")
 
         if mode == "add" or mode == "set":
             if isinstance(target, discord.Role):
