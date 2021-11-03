@@ -48,7 +48,7 @@ class logviewer2companion(commands.Cog):
         self.enabled = config.get("enabled", True)
         self.allow_evidence_share = config.get("allow_evidence_share", False)
         self.allowed_users = config.get("allowed_users", [])
-        self.allowed_roles = config.get("allowed_roles", [])
+        self.allowed_roles = config.get("allowed_roles", {})
 
     async def update_roles(self):
         g = self.bot.modmail_guild
