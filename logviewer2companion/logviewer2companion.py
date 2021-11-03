@@ -56,14 +56,14 @@ class logviewer2companion(commands.Cog):
             return
 
         for role in self.allowed_roles:
-            grole = g.get_role(role)
+            grole = g.get_role(int(role))
             if grole:
                 members = []
                 for member in grole.members:
                     members.append(member.id)
-                self.allowed_roles = members
+                self.allowed_roles[str(role)] = members
             else:
-                del self.allowed_roles[role]
+                del self.allowed_roles[str(role)]
 
         await self._update_config()
 
@@ -184,21 +184,21 @@ class logviewer2companion(commands.Cog):
 
         if mode == "add" or mode == "set":
             if isinstance(target, discord.Role):
-                self.allowed_roles[target.id] = []
+                self.allowed_roles[str(target.id)] = []
             else:
                 self.allowed_users.append(target.id)
 
         elif mode == "remove" or mode == "rmv":
             if isinstance(target, discord.Role):
-                del self.allowed_roles[target.id]
+                del self.allowed_roles[str(target.id)]
             else:
                 self.allowed_users.remove(target.id)
 
         elif mode == "status" or mode == "info":
             if isinstance(target, discord.Role):
-                verbage = "has" if target.id in self.allowed_roles else "doesn't have"
+                verbage = "has" if str(target.id) in self.allowed_roles else "doesn't have"
             else:
-                verbage = "has" if target.id in self.allowed_users else "doesn't have"
+                verbage = "has" if str(target.id) in self.allowed_users else "doesn't have"
 
             embed.description = f"{target.mention} ({target.id}) {verbage} access to oauth logs"
         else:
