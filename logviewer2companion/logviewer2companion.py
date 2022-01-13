@@ -106,7 +106,7 @@ class logviewer2companion(commands.Cog):
     @commands.command(aliases=['eloglink'])
     @checks.has_permissions(PermissionLevel.SUPPORTER)
     @checks.thread_only()
-    async def l2c_loglink(self, ctx):
+    async def eloglink(self, ctx):
         """Get evidence based loglink if enabled :)
 
         Usage: `eloglink`
@@ -129,7 +129,7 @@ class logviewer2companion(commands.Cog):
 
         Usage: `l2c eloglink`
         """
-        return await self.l2c_loglink(ctx)
+        return await self.eloglink(ctx)
 
     @oauth2.command(name="toggle")
     @checks.has_permissions(PermissionLevel.OWNER)
