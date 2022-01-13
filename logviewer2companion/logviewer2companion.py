@@ -103,7 +103,7 @@ class logviewer2companion(commands.Cog):
         return await ctx.send(embed=embed)
 
     # note: Cannot make this a l2c and a root command at the same time, though i could just make another function, ez
-    @commands.command(aliases=['eloglink'])
+    @commands.command()
     @checks.has_permissions(PermissionLevel.SUPPORTER)
     @checks.thread_only()
     async def eloglink(self, ctx):
