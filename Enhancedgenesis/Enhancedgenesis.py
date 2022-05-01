@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 from core.utils import days
 from discord.ext import commands

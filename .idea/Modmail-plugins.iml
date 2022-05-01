@@ -7,7 +7,7 @@
     <content url="file://$MODULE_DIR$/../modmail-kyb3r">
       <sourceFolder url="file://$MODULE_DIR$/../modmail-kyb3r" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.9 (Modmail-plugins)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Pipenv (Modmail-plugins)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">
