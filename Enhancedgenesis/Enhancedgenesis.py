@@ -7,6 +7,7 @@ from discord.utils import snowflake_time
 
 class Enhancedgenesisplugin(commands.Cog):
     """Refined genesis plugin"""
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -25,16 +26,18 @@ class Enhancedgenesisplugin(commands.Cog):
 
         embed_description = []
         embed_description.append(f"**Profile:** {thread._recipient.mention}")
-        embed_description.append(f"**Created:** {days(created)} (`{snowflake_time(thread._recipient.id).strftime('%m/%d/%y @ %I:%M%p')}`)")
+        embed_description.append(
+            f"**Created:** {days(created)} (`{snowflake_time(thread._recipient.id).strftime('%m/%d/%y @ %I:%M%p')}`)")
 
         if member is not None and member.joined_at is not None:
-            embed_description.append(f"**Joined:** {days(str((time - member.joined_at).days))} (`{member.joined_at.strftime('%m/%d/%y @ %I:%M%p')}`)")
+            embed_description.append(
+                f"**Joined:** {days(str((time - member.joined_at).days))} (`{member.joined_at.strftime('%m/%d/%y @ %I:%M%p')}`)")
 
         Logs = await self.bot.api.get_user_logs(thread._recipient.id)
         log_count = 0
         for log in Logs:
             if not log['open']:
-                log_count +=1
+                log_count += 1
 
         if log_count:
             thread_word = "Thread" if log_count == 1 else "Threads"
@@ -42,6 +45,7 @@ class Enhancedgenesisplugin(commands.Cog):
 
         embed.description = "\n".join(embed_description)
         await thread.genesis_message.edit(content=thread.genesis_message.content, embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Enhancedgenesisplugin(bot))
