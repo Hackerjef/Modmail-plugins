@@ -49,20 +49,15 @@ class Guildmemberwatch(commands.Cog):
             return
         self.logger.info(
             f"{member} ({member.id}) has joined guild {member.guild} ({member.guild.id}) with an active thread")
-        embed = discord.Embed(description=f"{member} ({member.id}) has joined {member.guild} ({member.guild.id})",
-                              color=self.bot.main_color)
-        thread.channel.send(embed=embed)
+        await thread.channel.send(embed=discord.Embed(description=f"{member} ({member.id}) has joined {member.guild} ({member.guild.id})", color=self.bot.main_color))
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         thread = await self.bot.threads.find(recipient_id=member.id)
         if not thread:
             return
-        self.logger.info(
-            f"{member} ({member.id}) has left guild {member.guild} ({member.guild.id}) with an active thread")
-        embed = discord.Embed(description=f"{member} ({member.id}) has left {member.guild} ({member.guild.id})",
-                              color=self.bot.error_color)
-        thread.channel.send(embed=embed)
+        self.logger.info(f"{member} ({member.id}) has left guild {member.guild} ({member.guild.id}) with an active thread")
+        await thread.channel.send(embed=discord.Embed(description=f"{member} ({member.id}) has left {member.guild} ({member.guild.id})", color=self.bot.error_color))
 
     @commands.group(name="gmw", invoke_without_command=True)
     @checks.has_permissions(PermissionLevel.OWNER)
@@ -98,8 +93,7 @@ class Guildmemberwatch(commands.Cog):
             self.watching_guilds.append(target.id)
 
         await self._update_config()
-        return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
-                                                  description=f"{target} ({target.id}) has been {'added' if target.id in self.watching_guilds else 'removed'}"))
+        return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"{target} ({target.id}) has been {'added' if target.id in self.watching_guilds else 'removed'}"))
 
 
 def setup(bot):
