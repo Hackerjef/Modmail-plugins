@@ -47,9 +47,8 @@ class Guildmemberwatch(commands.Cog):
         thread = await self.bot.threads.find(recipient_id=member.id)
         if not thread:
             return
-        self.logger.info(
-            f"{member} ({member.id}) has joined guild {member.guild} ({member.guild.id}) with an active thread")
-        await thread.channel.send(embed=discord.Embed(description=f"{member} ({member.id}) has joined {member.guild} ({member.guild.id})", color=self.bot.main_color))
+        self.logger.info(f"{member} ({member.id}) has joined guild {member.guild} ({member.guild.id}) with an active thread")
+        await thread.channel.send(embed=discord.Embed(description=f"User has joined: {member.guild}", color=self.bot.main_color))
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
@@ -57,7 +56,7 @@ class Guildmemberwatch(commands.Cog):
         if not thread:
             return
         self.logger.info(f"{member} ({member.id}) has left guild {member.guild} ({member.guild.id}) with an active thread")
-        await thread.channel.send(embed=discord.Embed(description=f"{member} ({member.id}) has left {member.guild} ({member.guild.id})", color=self.bot.error_color))
+        await thread.channel.send(embed=discord.Embed(description=f"User has left: {member.guild}", color=self.bot.error_color))
 
     @commands.group(name="gmw", invoke_without_command=True)
     @checks.has_permissions(PermissionLevel.OWNER)
