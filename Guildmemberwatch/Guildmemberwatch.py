@@ -13,7 +13,7 @@ class Guildmemberwatch(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.db = bot.plugin_db.get_partition(self)
-        self.logger = getLogger(__name__)
+        self.logger = getLogger("Guildmemberwatch")
 
         # settings
         self.enabled = True
@@ -44,7 +44,7 @@ class Guildmemberwatch(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        thread = self.bot.threads.find(recipient_id=member.id)
+        thread = await self.bot.threads.find(recipient_id=member.id)
         if not thread:
             return
         self.logger.info(
@@ -55,7 +55,7 @@ class Guildmemberwatch(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        thread = self.bot.threads.find(recipient_id=member.id)
+        thread = await self.bot.threads.find(recipient_id=member.id)
         if not thread:
             return
         self.logger.info(
@@ -99,7 +99,7 @@ class Guildmemberwatch(commands.Cog):
 
         await self._update_config()
         return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
-                                                  description=f"Guild has been {'added' if target.id in self.watching_guilds else 'removed'}"))
+                                                  description=f"{target} ({target.id}) has been {'added' if target.id in self.watching_guilds else 'removed'}"))
 
 
 def setup(bot):
