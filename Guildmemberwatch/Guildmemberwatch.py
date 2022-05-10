@@ -40,10 +40,12 @@ class Guildmemberwatch(commands.Cog):
             return
 
         self.enabled = config.get("enabled", True)
-        self.allow_evidence_share = config.get("watching_guilds", [])
+        self.watching_guilds = config.get("watching_guilds", [])
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
+        if member.guild.id not in self.watching_guilds:
+            return
         thread = await self.bot.threads.find(recipient_id=member.id)
         if not thread:
             return
@@ -52,6 +54,8 @@ class Guildmemberwatch(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
+        if member.guild.id not in self.watching_guilds:
+            return
         thread = await self.bot.threads.find(recipient_id=member.id)
         if not thread:
             return
