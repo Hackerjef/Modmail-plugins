@@ -73,7 +73,7 @@ class Guildmemberwatch(commands.Cog):
     @gmw.command("toggle")
     @checks.has_permissions(PermissionLevel.OWNER)
     async def gmw_toggle(self, ctx):
-        """Disable or enable the oauth system.
+        """Disable or enable the guild member watcher.
 
         Usage: `gmw toggle`
         """
