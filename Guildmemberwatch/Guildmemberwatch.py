@@ -12,7 +12,7 @@ class Guildmemberwatch(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.db = bot.plugin_db.get_partition(self)
+        self.db = bot.api.get_plugin_partition(self)
         self.logger = getLogger("Guildmemberwatch")
 
         # settings

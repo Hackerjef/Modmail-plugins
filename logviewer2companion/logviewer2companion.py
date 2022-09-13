@@ -15,7 +15,7 @@ class logviewer2companion(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.db = bot.plugin_db.get_partition(self)
+        self.db = bot.api.get_plugin_partition(self)
 
         # settings
         self.enabled = True
