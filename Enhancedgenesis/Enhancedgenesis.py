@@ -12,7 +12,7 @@ class Enhancedgenesisplugin(commands.Cog):
 
     # Rewrite genesis message to be formated better
     @commands.Cog.listener()
-    async def on_thread_ready(self, thread, reator, category, initial_message):
+    async def on_thread_ready(self, thread, creator, category, initial_message):
         # Grab older embed data from msg (only change description)
         try:
             embed = thread.genesis_message.embeds[0]
