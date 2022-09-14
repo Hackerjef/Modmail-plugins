@@ -48,6 +48,11 @@ below is a table for all the current plugins that are currently available
     <td><code>Hackerjef/Modmail-plugins/Guildmemberwatch</code></td>
     <td><a href="../../wiki/Wiki-one-page#Guildmemberwatch">Link</a></td>
   </tr>
+  <tr>
+    <td>Categorymover</td>
+    <td><code>Hackerjef/Modmail-plugins/Categorymover</code></td>
+    <td><a href="../../wiki/Wiki-one-page#Categorymover">Link</a></td>
+  </tr>
 </tbody>
 </table>
 
