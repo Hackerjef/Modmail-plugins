@@ -48,8 +48,10 @@ class ReactionMenu(object):
         await self.reaction_addr
         if moved_to:
             asyncio.create_task(self._clear_reactions())
-            await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(str(moved_to.id), 'Unknown')}`"))
-            await self.thread.channel.send(embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
+            await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color,
+                                                     description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
+            await self.thread.channel.send(
+                embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
         else:
             await self.menu.delete()
         del self.cog.running_responses[self.thread.id]
@@ -59,7 +61,7 @@ class ReactionMenu(object):
             return
         if payload.emoji.name not in self.options:
             return
-        category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=int(self.options[payload.emoji.name]))
+        category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=self.options[payload.emoji.name])
         if category:
             await self.thread.channel.move(category=category, end=True, sync_permissions=True, reason="Thread was moved by Reaction menu within modmail")
         await self.disband(moved_to=category)
@@ -98,7 +100,8 @@ class Categorymoverplugin(commands.Cog):
 
         # settings
         self.enabled = True
-        self.categories = {}
+        self.categories: dict[Snowflake, str] = {}  # Category, Category Description
+        self.categories_ping: dict[Snowflake, list[Snowflake]]
         self.menu_description = menu_description
 
         asyncio.create_task(self._set_options())
@@ -174,16 +177,16 @@ class Categorymoverplugin(commands.Cog):
         if not target:
             raise commands.BadArgument("Category does not exist")
 
-        if str(target.id) in self.categories:
-            del self.categories[str(target.id)]
+        if target.id in self.categories:
+            del self.categories[target.id]
         else:
             if len(self.categories.keys()) > 9:
                 return await ctx.send(
                     embed=discord.Embed(color=self.bot.error_color, description="Cannot add more then 9 categories!"))
-            self.categories[str(target.id)] = info
+            self.categories[target.id] = info
         await self._update_config()
         return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
-                                                  description=f"{target} ({target.id}) has been {'added' if str(target.id) in self.categories else 'removed'}\n{f'With description: `{info}`' if str(target.id) in self.categories else ''}"))
+                                                  description=f"{target} ({target.id}) has been {'added' if target.id in self.categories else 'removed'}\n{f'With description: `{info}`' if target.id in self.categories else ''}"))
 
     @cm.command("set_description")
     @checks.has_permissions(PermissionLevel.ADMIN)
@@ -222,7 +225,7 @@ class Categorymoverplugin(commands.Cog):
             {
                 "$set": {
                     "enabled": self.enabled,
-                    "categories": self.categories,
+                    "categories": dict((str(key), value) for (key, value) in self.categories.items()),
                     "menu_description": self.menu_description
                 }
             },
@@ -237,7 +240,7 @@ class Categorymoverplugin(commands.Cog):
             return
 
         self.enabled = config.get("enabled", True)
-        self.categories = config.get("categories", {})
+        self.categories = dict((int(key), value) for (key, value) in config.get("categories", {}).items()),
         self.menu_description = config.get("menu_description", menu_description)
 
 
