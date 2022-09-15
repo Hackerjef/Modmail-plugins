@@ -48,10 +48,8 @@ class ReactionMenu(object):
         await self.reaction_addr
         if moved_to:
             asyncio.create_task(self._clear_reactions())
-            await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color,
-                                                     description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
-            await self.thread.channel.send(
-                embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
+            await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
+            await self.thread.channel.send(embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
         else:
             await self.menu.delete()
         del self.cog.running_responses[self.thread.id]
@@ -240,9 +238,8 @@ class Categorymoverplugin(commands.Cog):
             return
 
         self.enabled = config.get("enabled", True)
-        self.categories = dict((int(key), value) for (key, value) in config.get("categories", {}).items()),
+        self.categories = dict((int(key), value) for (key, value) in config.get("categories", {}).items())
         self.menu_description = config.get("menu_description", menu_description)
-
 
 def setup(bot):
     bot.add_cog(Categorymoverplugin(bot))
