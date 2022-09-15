@@ -47,7 +47,7 @@ class ReactionMenu(object):
         self.reaction_addr.cancel()
         await self.reaction_addr
         if moved_to:
-            asyncio.create_task(self._clear_reactions())
+            asyncio.create_task(self._clear_reactions(wait=3))
             await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
             await self.thread.channel.send(embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
         else:
@@ -71,7 +71,9 @@ class ReactionMenu(object):
         except asyncio.CancelledError:
             pass
 
-    async def _clear_reactions(self):
+    async def _clear_reactions(self, wait=None):
+        if wait:
+            await asyncio.sleep(wait)
         msg = discord.utils.get(self.cog.bot.cached_messages, id=self.menu.id)
         if msg:
             for reaction in msg.reactions:
@@ -240,6 +242,7 @@ class Categorymoverplugin(commands.Cog):
         self.enabled = config.get("enabled", True)
         self.categories = dict((int(key), value) for (key, value) in config.get("categories", {}).items())
         self.menu_description = config.get("menu_description", menu_description)
+
 
 def setup(bot):
     bot.add_cog(Categorymoverplugin(bot))
