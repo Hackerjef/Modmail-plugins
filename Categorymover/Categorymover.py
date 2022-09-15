@@ -72,13 +72,11 @@ class ReactionMenu(object):
             pass
 
     async def _clear_reactions(self):
-        self.cog.logger.info(str(self.menu.reactions))
-        for reaction in self.menu.reactions:
-            self.cog.logger.info(dir(reaction))
-            self.cog.logger.info(str(reaction))
-            if reaction.me:
-                self.cog.logger.info("me")
-                await reaction.remove(self.bot.user.id)
+        msg = discord.utils.get(self.cog.bot.cached_messages, id=self.menu.id)
+        if msg:
+            for reaction in msg.reactions:
+                if reaction.me:
+                    await reaction.remove(self.bot.user.id)
 
     def _gen_embed(self):
         embed = discord.Embed(color=self.cog.bot.main_color)
