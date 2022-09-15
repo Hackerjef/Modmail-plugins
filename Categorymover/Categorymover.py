@@ -20,9 +20,10 @@ class ReactionMenu(object):
         self.cog: Categorymoverplugin
         self.thread: Thread
         self.initial_message: Message
-        self.options: dict
+        self.options: dict[str, Snowflake]
         self.menu: Message
         self.reaction_addr: Task
+        self.is_dead: bool = False
 
     @classmethod
     async def create(cls, cog, thread, initial_message):
@@ -39,23 +40,29 @@ class ReactionMenu(object):
         self.reaction_addr = asyncio.create_task(self._add_reactions())
         return self
 
-    async def disband(self):
+    async def disband(self, moved_to=None):
+        if self.is_dead:
+            return
+        self.is_dead = True
         self.reaction_addr.cancel()
         await self.reaction_addr
-        try:
+        if moved_to:
+            asyncio.create_task(self._clear_reactions())
+            await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'the category')}`"))
+            await self.thread.channel.send(embed=discord.Embed(description=f"Moved to {str(moved_to)}", color=self.bot.main_color))
+        else:
             await self.menu.delete()
-        except:  # noqa
-            pass
         del self.cog.running_responses[self.thread.id]
 
     async def process(self, payload: discord.RawReactionActionEvent):
+        if self.is_dead:
+            return
         if payload.emoji.name not in self.options:
             return
         category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=int(self.options[payload.emoji.name]))
         if category:
-            await self.thread.channel.move(category=category, end=True, sync_permissions=True,
-                                           reason="Thread was moved by Reaction menu within modmail")
-        await self.disband()
+            await self.thread.channel.move(category=category, end=True, sync_permissions=True, reason="Thread was moved by Reaction menu within modmail")
+        await self.disband(moved_to=category)
 
     async def _add_reactions(self):
         try:
@@ -72,6 +79,11 @@ class ReactionMenu(object):
         embed.description = "\n".join(rows)
         return embed
 
+    async def _clear_reactions(self):
+        for reaction in self.menu.reactions():
+            if reaction.me:
+                await reaction.remove(self.bot.user.id)
+
 
 class Categorymoverplugin(commands.Cog):
     """Move threads automatically to reduce the worry for thread limit as well as better organization"""
@@ -80,7 +92,7 @@ class Categorymoverplugin(commands.Cog):
         self.bot = bot
         self.db = bot.plugin_db.get_partition(self)
         self.logger = getLogger("CategoryMover")
-        self.running_responses: dict[Snowflake, ReactionMenu] = {}
+        self.running_responses: dict[Snowflake, ReactionMenu] = {}  # userid, reactionMenu
 
         # settings
         self.enabled = True
@@ -168,7 +180,8 @@ class Categorymoverplugin(commands.Cog):
                     embed=discord.Embed(color=self.bot.error_color, description="Cannot add more then 9 categories!"))
             self.categories[str(target.id)] = info
         await self._update_config()
-        return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"{target} ({target.id}) has been {'added' if str(target.id) in self.categories else 'removed'}\n{f'With description: `{info}`' if str(target.id) in self.categories else ''}"))
+        return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
+                                                  description=f"{target} ({target.id}) has been {'added' if str(target.id) in self.categories else 'removed'}\n{f'With description: `{info}`' if str(target.id) in self.categories else ''}"))
 
     @cm.command("set_description")
     @checks.has_permissions(PermissionLevel.ADMIN)
@@ -183,7 +196,8 @@ class Categorymoverplugin(commands.Cog):
         else:
             self.menu_description = menu_description
         await self._update_config()
-        return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Menu Description set to:\n`{self.menu_description}`"))
+        return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
+                                                  description=f"Menu Description set to:\n`{self.menu_description}`"))
 
     @cm.command("embed", aliases=["categories"])
     @checks.has_permissions(PermissionLevel.MOD)
