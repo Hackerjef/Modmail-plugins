@@ -76,7 +76,7 @@ class ReactionMenu(object):
         if msg:
             for reaction in msg.reactions:
                 if reaction.me:
-                    await reaction.remove(self.bot.user.id)
+                    await reaction.remove(self.cog.bot.user.id)
 
     def _gen_embed(self):
         embed = discord.Embed(color=self.cog.bot.main_color)
