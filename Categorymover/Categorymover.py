@@ -48,8 +48,8 @@ class ReactionMenu(object):
         await self.reaction_addr
         if moved_to:
             asyncio.create_task(self._clear_reactions())
-            await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'the category')}`"))
-            await self.thread.channel.send(embed=discord.Embed(description=f"Moved to {str(moved_to)}", color=self.bot.main_color))
+            await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to, 'Unknown')}`"))
+            await self.thread.channel.send(embed=discord.Embed(description=f"Moved to {str(moved_to)}", color=self.cog.bot.main_color))
         else:
             await self.menu.delete()
         del self.cog.running_responses[self.thread.id]
@@ -62,7 +62,7 @@ class ReactionMenu(object):
         category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=int(self.options[payload.emoji.name]))
         if category:
             await self.thread.channel.move(category=category, end=True, sync_permissions=True, reason="Thread was moved by Reaction menu within modmail")
-        await self.disband(moved_to=category)
+        await self.disband(moved_to=int(self.options[payload.emoji.name]))
 
     async def _add_reactions(self):
         try:
@@ -80,7 +80,7 @@ class ReactionMenu(object):
         return embed
 
     async def _clear_reactions(self):
-        for reaction in self.menu.reactions():
+        for reaction in self.menu.reactions:
             if reaction.me:
                 await reaction.remove(self.bot.user.id)
 
