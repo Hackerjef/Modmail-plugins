@@ -20,9 +20,10 @@ class ReactionMenu(object):
         self.cog: Categorymoverplugin
         self.thread: Thread
         self.initial_message: Message
-        self.options: dict
+        self.options: dict[str, Snowflake]
         self.menu: Message
         self.reaction_addr: Task
+        self.is_dead: bool = False
 
     @classmethod
     async def create(cls, cog, thread, initial_message):
@@ -39,23 +40,29 @@ class ReactionMenu(object):
         self.reaction_addr = asyncio.create_task(self._add_reactions())
         return self
 
-    async def disband(self):
+    async def disband(self, moved_to=None):
+        if self.is_dead:
+            return
+        self.is_dead = True
         self.reaction_addr.cancel()
         await self.reaction_addr
-        try:
+        if moved_to:
+            asyncio.create_task(self._clear_reactions(wait=3))
+            await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
+            await self.thread.channel.send(embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
+        else:
             await self.menu.delete()
-        except:  # noqa
-            pass
         del self.cog.running_responses[self.thread.id]
 
     async def process(self, payload: discord.RawReactionActionEvent):
+        if self.is_dead:
+            return
         if payload.emoji.name not in self.options:
             return
-        category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=int(self.options[payload.emoji.name]))
+        category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=self.options[payload.emoji.name])
         if category:
-            await self.thread.channel.move(category=category, end=True, sync_permissions=True,
-                                           reason="Thread was moved by Reaction menu within modmail")
-        await self.disband()
+            await self.thread.channel.move(category=category, end=True, sync_permissions=True, reason="Thread was moved by Reaction menu within modmail")
+        await self.disband(moved_to=category)
 
     async def _add_reactions(self):
         try:
@@ -63,6 +70,15 @@ class ReactionMenu(object):
                 await self.menu.add_reaction(emoji)
         except asyncio.CancelledError:
             pass
+
+    async def _clear_reactions(self, wait=None):
+        if wait:
+            await asyncio.sleep(wait)
+        msg = discord.utils.get(self.cog.bot.cached_messages, id=self.menu.id)
+        if msg:
+            for reaction in msg.reactions:
+                if reaction.me:
+                    await reaction.remove(self.cog.bot.user)
 
     def _gen_embed(self):
         embed = discord.Embed(color=self.cog.bot.main_color)
@@ -80,11 +96,12 @@ class Categorymoverplugin(commands.Cog):
         self.bot = bot
         self.db = bot.plugin_db.get_partition(self)
         self.logger = getLogger("CategoryMover")
-        self.running_responses: dict[Snowflake, ReactionMenu] = {}
+        self.running_responses: dict[Snowflake, ReactionMenu] = {}  # userid, reactionMenu
 
         # settings
         self.enabled = True
-        self.categories = {}
+        self.categories: dict[Snowflake, str] = {}  # Category, Category Description
+        self.categories_ping: dict[Snowflake, list[Snowflake]]
         self.menu_description = menu_description
 
         asyncio.create_task(self._set_options())
@@ -160,15 +177,16 @@ class Categorymoverplugin(commands.Cog):
         if not target:
             raise commands.BadArgument("Category does not exist")
 
-        if str(target.id) in self.categories:
-            del self.categories[str(target.id)]
+        if target.id in self.categories:
+            del self.categories[target.id]
         else:
             if len(self.categories.keys()) > 9:
                 return await ctx.send(
                     embed=discord.Embed(color=self.bot.error_color, description="Cannot add more then 9 categories!"))
-            self.categories[str(target.id)] = info
+            self.categories[target.id] = info
         await self._update_config()
-        return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"{target} ({target.id}) has been {'added' if str(target.id) in self.categories else 'removed'}\n{f'With description: `{info}`' if str(target.id) in self.categories else ''}"))
+        return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
+                                                  description=f"{target} ({target.id}) has been {'added' if target.id in self.categories else 'removed'}\n{f'With description: `{info}`' if target.id in self.categories else ''}"))
 
     @cm.command("set_description")
     @checks.has_permissions(PermissionLevel.ADMIN)
@@ -183,7 +201,8 @@ class Categorymoverplugin(commands.Cog):
         else:
             self.menu_description = menu_description
         await self._update_config()
-        return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Menu Description set to:\n`{self.menu_description}`"))
+        return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
+                                                  description=f"Menu Description set to:\n`{self.menu_description}`"))
 
     @cm.command("embed", aliases=["categories"])
     @checks.has_permissions(PermissionLevel.MOD)
@@ -206,7 +225,7 @@ class Categorymoverplugin(commands.Cog):
             {
                 "$set": {
                     "enabled": self.enabled,
-                    "categories": self.categories,
+                    "categories": dict((str(key), value) for (key, value) in self.categories.items()),
                     "menu_description": self.menu_description
                 }
             },
@@ -221,7 +240,7 @@ class Categorymoverplugin(commands.Cog):
             return
 
         self.enabled = config.get("enabled", True)
-        self.categories = config.get("categories", {})
+        self.categories = dict((int(key), value) for (key, value) in config.get("categories", {}).items())
         self.menu_description = config.get("menu_description", menu_description)
 
 
