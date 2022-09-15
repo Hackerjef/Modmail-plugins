@@ -4,7 +4,7 @@ from core import checks
 from core.models import PermissionLevel, getLogger
 
 
-class Power(commands.cog):
+class Power(commands.Cog):
     """Shutdown/restart bot with a command - Yes I really needed this at once"""
     def __init__(self, bot):
         self.bot = bot
