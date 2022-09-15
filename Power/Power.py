@@ -19,7 +19,7 @@ class Power(commands.Cog):
         """
         self.logger.info(f"Power triggered by {ctx.author} ({ctx.author.id})")
         await ctx.send(content="👌")
-        await self.bot.logout()
+        await self.bot.close()
 
 
 def setup(bot):
