@@ -73,9 +73,10 @@ class ReactionMenu(object):
 
     async def _clear_reactions(self):
         for reaction in self.menu.reactions:
-            print(reaction)
+            self.cog.log.info(dir(reaction))
+            self.cog.log.info(str(reaction))
             if reaction.me:
-                print("me")
+                self.cog.log.info("me")
                 await reaction.remove(self.bot.user.id)
 
     def _gen_embed(self):
