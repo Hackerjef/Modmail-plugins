@@ -72,11 +72,12 @@ class ReactionMenu(object):
             pass
 
     async def _clear_reactions(self):
+        self.cog.logger.info(str(self.menu.reactions))
         for reaction in self.menu.reactions:
-            self.cog.log.info(dir(reaction))
-            self.cog.log.info(str(reaction))
+            self.cog.logger.info(dir(reaction))
+            self.cog.logger.info(str(reaction))
             if reaction.me:
-                self.cog.log.info("me")
+                self.cog.logger.info("me")
                 await reaction.remove(self.bot.user.id)
 
     def _gen_embed(self):
