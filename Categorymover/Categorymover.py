@@ -1,4 +1,5 @@
 import asyncio
+import typing
 from asyncio import Task
 
 import discord
@@ -48,8 +49,11 @@ class ReactionMenu(object):
         await self.reaction_addr
         if moved_to:
             asyncio.create_task(self._clear_reactions(wait=3))
-            await self.menu.edit(content=await self._get_pings(moved_to.id), embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
-            await self.thread.channel.send(embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
+            await self.menu.edit(content=await self._get_pings(moved_to.id),
+                                 embed=discord.Embed(color=self.cog.bot.main_color,
+                                                     description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
+            await self.thread.channel.send(
+                embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
         else:
             await self.menu.delete()
         del self.cog.running_responses[self.thread.id]
@@ -61,7 +65,8 @@ class ReactionMenu(object):
             return
         category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=self.options[payload.emoji.name])
         if category:
-            await self.thread.channel.move(category=category, end=True, sync_permissions=True, reason="Thread was moved by Reaction menu within modmail")
+            await self.thread.channel.move(category=category, end=True, sync_permissions=True,
+                                           reason="Thread was moved by Reaction menu within modmail")
         await self.disband(moved_to=category)
 
     async def _add_reactions(self):
@@ -85,7 +90,10 @@ class ReactionMenu(object):
         if ping_ids:
             pings = []
             for _id in ping_ids:
-                print(_id)
+                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(
+                    self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
+                if obj is not None:
+                    pings.append(obj.mention)
             " ".join(pings)
         return None
 
@@ -196,6 +204,32 @@ class Categorymoverplugin(commands.Cog):
         await self._update_config()
         return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
                                                   description=f"{target} ({target.id}) has been {'added' if target.id in self.categories else 'removed'}\n{f'With description: `{info}`' if target.id in self.categories else ''}"))
+
+    # NOTE: add clause for snowflake in target (pos typing.Union discord.snowflake.Snowflake
+    @cm.command("ping")
+    @checks.has_permissions(PermissionLevel.ADMIN)
+    async def cm_ping(self, ctx, target: discord.CategoryChannel, mentionable: typing.Union[discord.member.Member, discord.role.Role] = None):
+        """Add or remove categories used in Menu
+
+        Usage: `cm ping (category_id) (User/Role)
+        """
+        if not target:
+            raise commands.BadArgument("Category does not exist")
+
+        if mentionable is None:
+            desc = []
+            for _id in self.categories_ping.get(target.id, []):
+                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(self.bot.modmail_guild.roles + self.bot.modmail_guild.members, id=_id)
+                if obj is not None:
+                    desc.append(f"{str(obj)} - (`{obj.id}`)")
+            return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description="\n".join(desc)))
+
+        if mentionable.id in self.categories_ping.get(target.id, []):
+            self.categories_ping.get(target.id, []).remove(mentionable.id)
+            return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Removed {mentionable} ({mentionable.id}) to {target} ({target.id})"))
+        else:
+            self.categories_ping.get(target.id, []).append(mentionable.id)
+            return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Added {mentionable} ({mentionable.id}) to {target} ({target.id})"))
 
     @cm.command("set_description")
     @checks.has_permissions(PermissionLevel.ADMIN)
