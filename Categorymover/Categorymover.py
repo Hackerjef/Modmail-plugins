@@ -11,7 +11,7 @@ from core import checks
 from core.models import getLogger, PermissionLevel
 from core.thread import Thread
 
-emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️9️⃣"]
+emojis = [":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:", ":regional_indicator_a:", ":regional_indicator_b:", ":regional_indicator_c:", ":regional_indicator_d:", ":regional_indicator_e:", ":regional_indicator_f:", ":regional_indicator_g:", ":regional_indicator_h:", ":regional_indicator_i:", ":regional_indicator_j:", ":regional_indicator_h:"]
 menu_description = "Please pick a category for your inquery"
 
 
@@ -221,10 +221,11 @@ class Categorymoverplugin(commands.Cog):
 
         if mentionable.id in self.categories_ping.get(target.id, []):
             self.categories_ping.get(target.id, []).remove(mentionable.id)
-            return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Removed {mentionable} ({mentionable.id}) to {target} ({target.id})"))
+            await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Removed {mentionable} ({mentionable.id}) to {target} ({target.id})"))
         else:
             self.categories_ping.get(target.id, []).append(mentionable.id)
-            return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Added {mentionable} ({mentionable.id}) to {target} ({target.id})"))
+            await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Added {mentionable} ({mentionable.id}) to {target} ({target.id})"))
+        await self._update_config()
 
     @cm.command("set_description")
     @checks.has_permissions(PermissionLevel.ADMIN)
