@@ -48,7 +48,7 @@ class ReactionMenu(object):
         await self.reaction_addr
         if moved_to:
             asyncio.create_task(self._clear_reactions(wait=3))
-            await self.menu.edit(content=await self._get_pings(moved_to), embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
+            await self.menu.edit(content=await self._get_pings(moved_to.id), embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
             await self.thread.channel.send(embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
         else:
             await self.menu.delete()
@@ -80,10 +80,14 @@ class ReactionMenu(object):
                 if reaction.me:
                     await reaction.remove(self.cog.bot.user)
 
-    async def _get_pings(self, moved_to=None):
-        if not moved_to:
-            return ""
-        return "Uwu"
+    async def _get_pings(self, category_id):  # noqa
+        ping_ids = self.cog.categories_ping.get(category_id, [])
+        if ping_ids:
+            pings = []
+            for _id in ping_ids:
+                print(_id)
+            " ".join(pings)
+        return None
 
     def _gen_embed(self):
         embed = discord.Embed(color=self.cog.bot.main_color)
