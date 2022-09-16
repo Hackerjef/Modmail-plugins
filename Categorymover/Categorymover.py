@@ -205,7 +205,7 @@ class Categorymoverplugin(commands.Cog):
         return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
                                                   description=f"{target} ({target.id}) has been {'added' if target.id in self.categories else 'removed'}\n{f'With description: `{info}`' if target.id in self.categories else ''}"))
 
-    # NOTE: add clause for snowflake in target (pos typing.Union discord.snowflake.Snowflake
+    # NOTE: add clause for snowflake in target (pos typing.Union discord.snowflake.Snowflake uwu
     @cm.command("ping")
     @checks.has_permissions(PermissionLevel.ADMIN)
     async def cm_ping(self, ctx, target: discord.CategoryChannel, mentionable: typing.Union[discord.member.Member, discord.role.Role] = None):
