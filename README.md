@@ -2,6 +2,8 @@
 
 Hello! These are custom plugins that I made/edited for [kyb3r's modmail](https://github.com/kyb3r/modmail)
 
+Note: Some of these plugins are from ideas of staff teams alike :)
+
 ## Installation
 
 As per all plugins for kyb3r's modmail, most need to be added by `[p] add ...` 
@@ -53,11 +55,15 @@ below is a table for all the current plugins that are currently available
     <td><code>Hackerjef/Modmail-plugins/Categorymover</code></td>
     <td><a href="../../wiki/Wiki-one-page#Categorymover">Link</a></td>
   </tr>
+  <tr>
+    <td>Power</td>
+    <td><code>Hackerjef/Modmail-plugins/Power</code></td>
+    <td><a href="../../wiki/Wiki-one-page#Power">Link</a></td>
+  </tr>
 </tbody>
 </table>
 
 ## **Note:**
-
 Due to the nature of me adding new things or changing things, 
 these plugins may be upgraded at one point to update please do `[p] update ..`
 
