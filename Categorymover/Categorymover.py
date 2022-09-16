@@ -48,7 +48,7 @@ class ReactionMenu(object):
         await self.reaction_addr
         if moved_to:
             asyncio.create_task(self._clear_reactions(wait=3))
-            await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
+            await self.menu.edit(content=await self._get_pings(moved_to), embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
             await self.thread.channel.send(embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
         else:
             await self.menu.delete()
@@ -79,6 +79,11 @@ class ReactionMenu(object):
             for reaction in msg.reactions:
                 if reaction.me:
                     await reaction.remove(self.cog.bot.user)
+
+    async def _get_pings(self, moved_to=None):
+        if not moved_to:
+            return ""
+        return "Uwu"
 
     def _gen_embed(self):
         embed = discord.Embed(color=self.cog.bot.main_color)
@@ -138,7 +143,7 @@ class Categorymoverplugin(commands.Cog):
         if not self.enabled or not len(self.categories.keys()) >= 2:
             return
 
-        # Assuming this message is created from a contact like function or if there is multiable recipients
+        # Assuming this message is created from a contact like function or if there is one or more recipients
         if creator or len(thread.recipients) > 1:
             self.logger.info(
                 f"Ignoring thread for user {str(thread.recipient)} ({thread.recipient.id}) Created by contact like function or thread has more then one recipients")
@@ -226,6 +231,7 @@ class Categorymoverplugin(commands.Cog):
                 "$set": {
                     "enabled": self.enabled,
                     "categories": dict((str(key), value) for (key, value) in self.categories.items()),
+                    "categories_ping": dict((str(key), value) for (key, value) in self.categories_ping.items()),
                     "menu_description": self.menu_description
                 }
             },
@@ -241,6 +247,7 @@ class Categorymoverplugin(commands.Cog):
 
         self.enabled = config.get("enabled", True)
         self.categories = dict((int(key), value) for (key, value) in config.get("categories", {}).items())
+        self.categories_ping = dict((int(key), value) for (key, value) in config.get("categories_ping", {}).items())
         self.menu_description = config.get("menu_description", menu_description)
 
 
