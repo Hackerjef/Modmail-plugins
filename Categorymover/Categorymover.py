@@ -86,11 +86,10 @@ class ReactionMenu(object):
         if ping_ids:
             pings = []
             for _id in ping_ids:
-                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(
-                    self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
+                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
                 if obj is not None:
                     pings.append(obj.mention)
-            " ".join(pings)
+            return " ".join(pings)
         return None
 
     def _gen_embed(self):
