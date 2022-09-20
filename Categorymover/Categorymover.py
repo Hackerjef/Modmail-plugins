@@ -11,7 +11,7 @@ from core import checks
 from core.models import getLogger, PermissionLevel
 from core.thread import Thread
 
-emojis = [":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:"]
+emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️9️⃣"]
 menu_description = "Please pick a category for your inquery"
 
 
