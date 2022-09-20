@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core.thread import Thread
 from core.utils import days
@@ -25,17 +25,16 @@ class Enhancedgenesisplugin(commands.Cog):
             raise Exception("Message doesn't have an embed/genesis doesn't exist")
 
         member = self.bot.guild.get_member(thread._recipient.id)
-        time = datetime.utcnow()
+        time = datetime.utcnow().replace(tzinfo=timezone.utc)
         created = str((time - thread._recipient.created_at).days)
 
         embed_description = []
         embed_description.append(f"**Profile:** {thread._recipient.mention}")
-        embed_description.append(
-            f"**Created:** {days(created)} (`{snowflake_time(thread._recipient.id).strftime('%m/%d/%y @ %I:%M%p')}`)")
+
+        embed_description.append(f"**Created:** {days(created)} (<t:{snowflake_time(thread._recipient.id).strftime('%s')}>)")
 
         if member is not None and member.joined_at is not None:
-            embed_description.append(
-                f"**Joined:** {days(str((time - member.joined_at).days))} (`{member.joined_at.strftime('%m/%d/%y @ %I:%M%p')}`)")
+            embed_description.append(f"**Joined:** {days(str((time - member.joined_at).days))} (`<t:{member.joined_at.strftime('%s')}>`)")
 
         Logs = await self.bot.api.get_user_logs(thread._recipient.id)
         log_count = 0
