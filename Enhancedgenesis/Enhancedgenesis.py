@@ -34,7 +34,7 @@ class Enhancedgenesisplugin(commands.Cog):
         embed_description.append(f"**Created:** {days(created)} (<t:{snowflake_time(thread._recipient.id).strftime('%s')}>)")
 
         if member is not None and member.joined_at is not None:
-            embed_description.append(f"**Joined:** {days(str((time - member.joined_at).days))} (`<t:{member.joined_at.strftime('%s')}>`)")
+            embed_description.append(f"**Joined:** {days(str((time - member.joined_at).days))} (<t:{member.joined_at.strftime('%s')}>)")
 
         Logs = await self.bot.api.get_user_logs(thread._recipient.id)
         log_count = 0
