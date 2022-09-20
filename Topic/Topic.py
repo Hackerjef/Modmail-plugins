@@ -24,5 +24,5 @@ class Topicplugin(commands.Cog):
         await self.bot.add_reaction(ctx.message, sent_emoji)
 
 
-def setup(bot):
-    bot.add_cog(Topicplugin(bot))
+async def setup(bot):
+    await bot.add_cog(Topicplugin(bot))

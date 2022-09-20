@@ -28,5 +28,5 @@ class Anonsnipetsplugin(commands.Cog):
                 await ctx.thread.reply(ctx.message, anonymous=True)
 
 
-def setup(bot):
-    bot.add_cog(Anonsnipetsplugin(bot))
+async def setup(bot):
+    await bot.add_cog(Anonsnipetsplugin(bot))

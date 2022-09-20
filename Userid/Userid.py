@@ -18,5 +18,5 @@ class Userid(commands.Cog):
         await ctx.send(f"{member.id}")
 
 
-def setup(bot):
-    bot.add_cog(Userid(bot))
+async def setup(bot):
+    await bot.add_cog(Userid(bot))

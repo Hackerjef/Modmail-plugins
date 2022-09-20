@@ -99,5 +99,5 @@ class Guildmemberwatch(commands.Cog):
         return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"{target} ({target.id}) has been {'added' if target.id in self.watching_guilds else 'removed'}"))
 
 
-def setup(bot):
-    bot.add_cog(Guildmemberwatch(bot))
+async def setup(bot):
+    await bot.add_cog(Guildmemberwatch(bot))

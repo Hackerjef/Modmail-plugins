@@ -46,5 +46,5 @@ class Enhancedgenesisplugin(commands.Cog):
         await thread.genesis_message.edit(content=thread.genesis_message.content, embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(Enhancedgenesisplugin(bot))
+async def setup(bot):
+    await bot.add_cog(Enhancedgenesisplugin(bot))

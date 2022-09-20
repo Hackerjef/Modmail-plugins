@@ -332,5 +332,5 @@ class DragoryMigrateRemux(commands.Cog):
             os.remove("dragorydb.sqlite")
 
 
-def setup(bot):
-    bot.add_cog(DragoryMigrateRemux(bot))
+async def setup(bot):
+    await bot.add_cog(DragoryMigrateRemux(bot))

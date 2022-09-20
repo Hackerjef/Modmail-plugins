@@ -244,5 +244,5 @@ class Categorymoverplugin(commands.Cog):
         self.menu_description = config.get("menu_description", menu_description)
 
 
-def setup(bot):
-    bot.add_cog(Categorymoverplugin(bot))
+async def setup(bot):
+    await bot.add_cog(Categorymoverplugin(bot))
