@@ -1,4 +1,5 @@
 import asyncio
+import typing
 from asyncio import Task
 
 import discord
@@ -10,7 +11,7 @@ from core import checks
 from core.models import getLogger, PermissionLevel
 from core.thread import Thread
 
-emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️9️⃣"]
+emojis = [":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:"]
 menu_description = "Please pick a category for your inquery"
 
 
@@ -49,7 +50,7 @@ class ReactionMenu(object):
         if moved_to:
             asyncio.create_task(self._clear_reactions(wait=3))
             await self.menu.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(moved_to.id, 'Unknown')}`"))
-            await self.thread.channel.send(embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
+            await self.thread.channel.send(content=await self._get_pings(moved_to.id), embed=discord.Embed(description=f"Moved to <#{moved_to.id}>", color=self.cog.bot.main_color))
         else:
             await self.menu.delete()
         del self.cog.running_responses[self.thread.id]
@@ -79,6 +80,17 @@ class ReactionMenu(object):
             for reaction in msg.reactions:
                 if reaction.me:
                     await reaction.remove(self.cog.bot.user)
+
+    async def _get_pings(self, category_id):  # noqa
+        ping_ids = self.cog.categories_ping.get(category_id, [])
+        if ping_ids:
+            pings = []
+            for _id in ping_ids:
+                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
+                if obj is not None:
+                    pings.append(obj.mention)
+            return " ".join(pings)
+        return None
 
     def _gen_embed(self):
         embed = discord.Embed(color=self.cog.bot.main_color)
@@ -138,7 +150,7 @@ class Categorymoverplugin(commands.Cog):
         if not self.enabled or not len(self.categories.keys()) >= 2:
             return
 
-        # Assuming this message is created from a contact like function or if there is multiable recipients
+        # Assuming this message is created from a contact like function or if there is one or more recipients
         if creator or len(thread.recipients) > 1:
             self.logger.info(
                 f"Ignoring thread for user {str(thread.recipient)} ({thread.recipient.id}) Created by contact like function or thread has more then one recipients")
@@ -188,6 +200,33 @@ class Categorymoverplugin(commands.Cog):
         return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
                                                   description=f"{target} ({target.id}) has been {'added' if target.id in self.categories else 'removed'}\n{f'With description: `{info}`' if target.id in self.categories else ''}"))
 
+    # NOTE: add clause for snowflake in target (pos typing.Union discord.snowflake.Snowflake uwu
+    @cm.command("ping")
+    @checks.has_permissions(PermissionLevel.ADMIN)
+    async def cm_ping(self, ctx, target: discord.CategoryChannel, mentionable: typing.Union[discord.member.Member, discord.role.Role] = None):
+        """Add or remove categories used in Menu
+
+        Usage: `cm ping (category_id) (User/Role)
+        """
+        if not target:
+            raise commands.BadArgument("Category does not exist")
+
+        if mentionable is None:
+            desc = []
+            for _id in self.categories_ping.get(target.id, []):
+                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(self.bot.modmail_guild.roles + self.bot.modmail_guild.members, id=_id)
+                if obj is not None:
+                    desc.append(f"{str(obj)} - (`{obj.id}`)")
+            return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description="\n".join(desc)))
+
+        if mentionable.id in self.categories_ping.get(target.id, []):
+            self.categories_ping.get(target.id, []).remove(mentionable.id)
+            await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Removed {mentionable} ({mentionable.id}) to {target} ({target.id})"))
+        else:
+            self.categories_ping.get(target.id, []).append(mentionable.id)
+            await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Added {mentionable} ({mentionable.id}) to {target} ({target.id})"))
+        await self._update_config()
+
     @cm.command("set_description")
     @checks.has_permissions(PermissionLevel.ADMIN)
     async def cm_set_description(self, ctx, *, text=None):
@@ -226,6 +265,7 @@ class Categorymoverplugin(commands.Cog):
                 "$set": {
                     "enabled": self.enabled,
                     "categories": dict((str(key), value) for (key, value) in self.categories.items()),
+                    "categories_ping": dict((str(key), value) for (key, value) in self.categories_ping.items()),
                     "menu_description": self.menu_description
                 }
             },
@@ -241,6 +281,7 @@ class Categorymoverplugin(commands.Cog):
 
         self.enabled = config.get("enabled", True)
         self.categories = dict((int(key), value) for (key, value) in config.get("categories", {}).items())
+        self.categories_ping = dict((int(key), value) for (key, value) in config.get("categories_ping", {}).items())
         self.menu_description = config.get("menu_description", menu_description)
 
 
