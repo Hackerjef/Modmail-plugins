@@ -10,7 +10,7 @@ class Power(commands.Cog):
         self.bot = bot
         self.logger = getLogger("Power")
 
-    @commands.command("shutdown", alias=['restart', 'poweroff'])
+    @commands.command("shutdown", aliases=['restart', 'poweroff'])
     @checks.has_permissions(PermissionLevel.OWNER)
     async def Power_restart(self, ctx):
         """Literally shutdown or restart the bot
