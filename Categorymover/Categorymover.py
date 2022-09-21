@@ -5,7 +5,6 @@ import discord
 from discord import Message
 from discord.abc import Snowflake
 from discord.ext import commands
-from typing_extensions import NotRequired
 
 from core import checks
 from core.models import getLogger, PermissionLevel
