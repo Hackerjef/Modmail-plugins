@@ -13,10 +13,37 @@ from core.thread import Thread
 menu_description = "Please pick a category for your inquery"
 
 
-class Category(typing.TypedDict, total=False):
+def fxCallback(item: discord.ui.Item, callback: typing.Callable) -> typing.Any:
+    item.__setattr__('callback', callback)
+    return item
+
+
+class Category(typing.TypedDict):
     label: str
-    description: str
-    mentions: list[Snowflake]
+    description: typing.Optional[str]
+    mentions: typing.Optional[list[Snowflake]]
+
+
+class CategoryViewButtons(discord.ui.View):
+    def __init__(self, target: discord.CategoryChannel, cog: 'Categorymoverplugin', *, timeout=180):
+        self.cog = cog
+        self.target = target
+
+        if target.id in self.cog.conf_categories:
+            self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.primary, label="Edit", emoji="✍"), callback=self.edit_category))
+            self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.danger, label="Delete", emoji="🚮"), callback=self.delete_category))
+        else:
+            self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.success, label="Create", emoji="✏"), callback=self.create_category))
+        super().__init__(timeout=timeout)
+
+    async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.edit_message(content=f"create_category")
+
+    async def edit_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.edit_message(content=f"edit_category")
+
+    async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.edit_message(content=f"delete_category")
 
 
 class SelectMenu(discord.ui.View):
@@ -34,11 +61,10 @@ class SelectMenu(discord.ui.View):
         self.cog = cog
         self.thread = thread
         self.initial_message = initial_message
-        self.selections = discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1)
-        self.selections.callback = self.callback
+        self.selections = fxCallback(discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1), callback=self.callback)
 
         for category_id, category in self.cog.conf_categories.items():
-            self.selections.add_option(label=category.get('label', None), value=str(category_id), description=category.get('description', None))
+            self.selections.add_option(label=category.get('label', None), value=str(category_id),description=category.get('description', None))
 
         self.add_item(self.selections)
         self.menu_message = await self.thread.recipient.send(
@@ -57,10 +83,15 @@ class SelectMenu(discord.ui.View):
         self.stop()
         if move_to:
             c: Category = self.cog.conf_categories.get(move_to.id, {})
-            await self.thread.channel.move(category=move_to, end=True, sync_permissions=True, reason="Thread was moved by Reaction menu within modmail")
-            await self.thread.channel.send(content=await self._get_mentions(move_to.id), embed=discord.Embed(description=f"Moved to <#{move_to.id}>", color=self.cog.bot.main_color))
+            await self.thread.channel.move(category=move_to, end=True, sync_permissions=True,
+                                           reason="Thread was moved by Reaction menu within modmail")
+            await self.thread.channel.send(content=await self._get_mentions(move_to.id),
+                                           embed=discord.Embed(description=f"Moved to <#{move_to.id}>",
+                                                               color=self.cog.bot.main_color))
             self.clear_items()
-            await self.menu_message.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to:\n{c.get('label', 'unknown')}"), view=self)
+            await self.menu_message.edit(embed=discord.Embed(color=self.cog.bot.main_color,
+                                                             description=f"✅ Moved to: {c.get('label', 'unknown')}"),
+                                         view=self)
         else:
             await self.menu_message.delete()
         del self.cog.running_responses[self.thread.id]
@@ -71,7 +102,8 @@ class SelectMenu(discord.ui.View):
         if ids:
             mentions = []
             for _id in ids:
-                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
+                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(
+                    self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
                 if obj is not None:
                     mentions.append(obj.mention)
             return " ".join(mentions)
@@ -118,7 +150,8 @@ class Categorymoverplugin(commands.Cog):
 
         # Assuming this message is created from a contact like function or if there is one or more recipients
         if creator or len(thread.recipients) > 1:
-            self.logger.info(f"Ignoring thread for user {str(thread.recipient)} ({thread.recipient.id}) Created by contact like function or thread has more then one recipients")
+            self.logger.info(
+                f"Ignoring thread for user {str(thread.recipient)} ({thread.recipient.id}) Created by contact like function or thread has more then one recipients")
             return
 
         self.running_responses[thread.id] = await SelectMenu.create(self, thread, initial_message)
@@ -133,15 +166,26 @@ class Categorymoverplugin(commands.Cog):
 
     @cm.command("toggle")
     @checks.has_permissions(PermissionLevel.ADMIN)
-    async def gmw_toggle(self, ctx):
+    async def cm_toggle(self, ctx):
         """Disable or enable the plugin.
 
         Usage: `cm toggle`
         """
         self.enabled = not self.enabled
         await self._update_config()
-        embed = discord.Embed(color=self.bot.main_color, description="Guild member watch has been " + ("enabled" if self.enabled else "disabled"))
+        embed = discord.Embed(color=self.bot.main_color,
+                              description="Guild member watch has been " + ("enabled" if self.enabled else "disabled"))
         return await ctx.reply(embed=embed)
+
+    @cm.command("category")
+    @checks.has_permissions(PermissionLevel.ADMIN)
+    async def cm_category(self, ctx, target: discord.CategoryChannel):
+        """Add or remove categories used in Menu
+        Usage: `cm category (category_id)`
+        """
+        if not target:
+            raise commands.BadArgument("Category does not exist")
+        await ctx.send(f"Options for: <#{target.id}>", view=CategoryViewButtons(target, self))
 
     async def _update_config(self):
         await self.db.find_one_and_update(
