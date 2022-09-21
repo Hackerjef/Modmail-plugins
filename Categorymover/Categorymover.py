@@ -1,20 +1,23 @@
 import asyncio
 import typing
-from asyncio import Task
 
 import discord
 from discord import Message
 from discord.abc import Snowflake
 from discord.ext import commands
+from typing_extensions import NotRequired
 
 from core import checks
 from core.models import getLogger, PermissionLevel
 from core.thread import Thread
 
-# emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️9️⃣"]
 menu_description = "Please pick a category for your inquery"
 
-# TODO: FIX THE WHOLE FUCKING THING
+
+class Category(typing.TypedDict, total=False):
+    label: str
+    description: str
+    mentions: list[Snowflake]
 
 
 class SelectMenu(discord.ui.View):
@@ -35,17 +38,17 @@ class SelectMenu(discord.ui.View):
         self.selections = discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1)
         self.selections.callback = self.callback
 
-        for category, description in self.cog.categories.items():
-            self.selections.add_option(label="category", value=str(category), description=description)
+        for category_id, category in self.cog.conf_categories.items():
+            self.selections.add_option(label=category.get('label', None), value=str(category_id), description=category.get('description', None))
 
         self.add_item(self.selections)
-        self.menu_message = await self.thread.recipient.send(embed=discord.Embed(color=self.cog.bot.main_color, description=self.cog.menu_description), view=self)
+        self.menu_message = await self.thread.recipient.send(
+            embed=discord.Embed(color=self.cog.bot.main_color, description=self.cog.menu_description), view=self)
         return self
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=int(self.selections.values[0]))
-        await self.disband(category)
+        await self.disband(discord.utils.get(self.cog.bot.modmail_guild.categories, id=int(self.selections.values[0])))
 
     async def on_timeout(self):
         print("TIMEOUT")
@@ -54,24 +57,25 @@ class SelectMenu(discord.ui.View):
     async def disband(self, move_to=None):
         self.stop()
         if move_to:
+            c: Category = self.cog.conf_categories.get(move_to.id, {})
             await self.thread.channel.move(category=move_to, end=True, sync_permissions=True, reason="Thread was moved by Reaction menu within modmail")
-            await self.thread.channel.send(content=await self._get_pings(move_to.id), embed=discord.Embed(description=f"Moved to <#{move_to.id}>", color=self.cog.bot.main_color))
+            await self.thread.channel.send(content=await self._get_mentions(move_to.id), embed=discord.Embed(description=f"Moved to <#{move_to.id}>", color=self.cog.bot.main_color))
             self.clear_items()
-            await self.menu_message.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(move_to.id, 'Unknown')}`"), view=self)
+            await self.menu_message.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to:\n{c.get('label', 'unknown')}"), view=self)
         else:
             await self.menu_message.delete()
         del self.cog.running_responses[self.thread.id]
 
-    async def _get_pings(self, category_id):  # noqa
-        ping_ids = self.cog.categories_ping.get(category_id, [])
-        if ping_ids:
-            pings = []
-            for _id in ping_ids:
-                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(
-                    self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
+    async def _get_mentions(self, category_id):  # noqa
+        c: Category = self.cog.conf_categories.get(category_id, {})
+        ids = c.get('mentions', [])
+        if ids:
+            mentions = []
+            for _id in ids:
+                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
                 if obj is not None:
-                    pings.append(obj.mention)
-            return " ".join(pings)
+                    mentions.append(obj.mention)
+            return " ".join(mentions)
         return None
 
 
@@ -82,12 +86,12 @@ class Categorymoverplugin(commands.Cog):
         self.bot = bot
         self.db = bot.plugin_db.get_partition(self)
         self.logger = getLogger("CategoryMover")
+        # TODO: fix
         self.running_responses: dict[typing.Union[Snowflake, int], ReactionMenu] = {}  # userid, reactionMenu
 
         # settings
         self.enabled = True
-        self.categories: dict[Snowflake, str] = {}  # Category, Category Description
-        self.categories_ping: dict[Snowflake, list[Snowflake]]
+        self.conf_categories: dict[Snowflake, Category] = {}
         self.menu_description = menu_description
         asyncio.create_task(self._set_options())
 
@@ -110,7 +114,7 @@ class Categorymoverplugin(commands.Cog):
 
     @commands.Cog.listener()
     async def on_thread_ready(self, thread, creator, category, initial_message):
-        if not self.enabled or not len(self.categories.keys()) >= 2:
+        if not self.enabled or not len(self.conf_categories.keys()) >= 2:
             return
 
         # Assuming this message is created from a contact like function or if there is one or more recipients
@@ -137,93 +141,8 @@ class Categorymoverplugin(commands.Cog):
         """
         self.enabled = not self.enabled
         await self._update_config()
-        embed = discord.Embed(color=self.bot.main_color,
-                              description="Guild member watch has been " + ("enabled" if self.enabled else "disabled"))
-        return await ctx.send(embed=embed)
-
-    @cm.command("category")
-    @checks.has_permissions(PermissionLevel.ADMIN)
-    async def cm_category(self, ctx, target: discord.CategoryChannel, *, info: str):
-        """Add or remove categories used in Menu
-
-        Usage: `cm category (category_id) (info about category for users)`
-        """
-        if not target:
-            raise commands.BadArgument("Category does not exist")
-
-        if target.id in self.categories:
-            del self.categories[target.id]
-        else:
-            if len(self.categories.keys()) > 9:
-                return await ctx.send(
-                    embed=discord.Embed(color=self.bot.error_color, description="Cannot add more then 9 categories!"))
-            self.categories[target.id] = info
-        await self._update_config()
-        return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
-                                                  description=f"{target} ({target.id}) has been {'added' if target.id in self.categories else 'removed'}\n{f'With description: `{info}`' if target.id in self.categories else ''}"))
-
-    # NOTE: add clause for snowflake in target (pos typing.Union discord.snowflake.Snowflake uwu
-    @cm.command("ping")
-    @checks.has_permissions(PermissionLevel.ADMIN)
-    async def cm_ping(self, ctx, target: discord.CategoryChannel,
-                      mentionable: typing.Union[discord.member.Member, discord.role.Role] = None):
-        """Add or remove categories used in Menu
-
-        Usage: `cm ping (category_id) (User/Role)
-        """
-        if not target:
-            raise commands.BadArgument("Category does not exist")
-
-        if mentionable is None:
-            desc = []
-            for _id in self.categories_ping.get(target.id, []):
-                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(
-                    self.bot.modmail_guild.roles + self.bot.modmail_guild.members, id=_id)
-                if obj is not None:
-                    desc.append(f"{str(obj)} - (`{obj.id}`)")
-            return await ctx.send(embed=discord.Embed(color=self.bot.main_color, description="\n".join(desc)))
-
-        if mentionable.id in self.categories_ping.get(target.id, []):
-            self.categories_ping.get(target.id, []).remove(mentionable.id)
-            await ctx.send(embed=discord.Embed(color=self.bot.main_color,
-                                               description=f"Removed {mentionable} ({mentionable.id}) to {target} ({target.id})"))
-        else:
-            self.categories_ping.get(target.id, []).append(mentionable.id)
-            await ctx.send(embed=discord.Embed(color=self.bot.main_color,
-                                               description=f"Added {mentionable} ({mentionable.id}) to {target} ({target.id})"))
-        await self._update_config()
-
-    @cm.command("set_description")
-    @checks.has_permissions(PermissionLevel.ADMIN)
-    async def cm_set_description(self, ctx, *, text=None):
-        """Sets description of the menu
-
-        Text can be blank to revert to default
-        Usage: `cm set_description (text)`
-        """
-        if text:
-            self.menu_description = text
-        else:
-            self.menu_description = menu_description
-        await self._update_config()
-        return await ctx.send(embed=discord.Embed(color=self.bot.main_color,
-                                                  description=f"Menu Description set to:\n`{self.menu_description}`"))
-
-    # TODO: remake
-    # @cm.command("embed", aliases=["categories"])
-    # @checks.has_permissions(PermissionLevel.MOD)
-    # async def cm_categories(self, ctx):
-    #     """View how the current menu looks!
-    #
-    #     Usage: `cm embed`
-    #     """
-    #     embed = discord.Embed(color=self.bot.main_color)
-    #     rows = [self.menu_description + "\n"]
-    #
-    #     for (category, emoji) in zip(self.categories.keys(), emojis):
-    #         rows.append(f"{emoji} - {self.categories.get(category, 'Unknown')}")
-    #     embed.description = "\n".join(rows)
-    #     return await ctx.send(content="Menu example:", embed=embed)
+        embed = discord.Embed(color=self.bot.main_color, description="Guild member watch has been " + ("enabled" if self.enabled else "disabled"))
+        return await ctx.reply(embed=embed)
 
     async def _update_config(self):
         await self.db.find_one_and_update(
@@ -231,8 +150,7 @@ class Categorymoverplugin(commands.Cog):
             {
                 "$set": {
                     "enabled": self.enabled,
-                    "categories": dict((str(key), value) for (key, value) in self.categories.items()),
-                    "categories_ping": dict((str(key), value) for (key, value) in self.categories_ping.items()),
+                    "conf_categories": dict((str(key), value) for (key, value) in self.conf_categories.items()),
                     "menu_description": self.menu_description
                 }
             },
@@ -247,8 +165,7 @@ class Categorymoverplugin(commands.Cog):
             return
 
         self.enabled = config.get("enabled", True)
-        self.categories = dict((int(key), value) for (key, value) in config.get("categories", {}).items())
-        self.categories_ping = dict((int(key), value) for (key, value) in config.get("categories_ping", {}).items())
+        self.conf_categories = dict((int(key), value) for (key, value) in config.get("conf_categories", {}).items())
         self.menu_description = config.get("menu_description", menu_description)
 
 
