@@ -14,7 +14,7 @@ menu_description = "Please pick a category for your inquery"
 
 
 def fxCallback(item: discord.ui.Item, callback: typing.Callable) -> typing.Any:
-    item.__setattr__('callback', callback)
+    item.callback = callback
     return item
 
 
@@ -35,8 +35,6 @@ class CategoryViewButtons(discord.ui.View):
             self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.danger, label="Delete", emoji="🚮"), callback=self.delete_category))
         else:
             self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.success, label="Create", emoji="✏"), callback=self.create_category))
-
-
 
     async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.edit_message(content=f"create_category")
@@ -63,10 +61,12 @@ class SelectMenu(discord.ui.View):
         self.cog = cog
         self.thread = thread
         self.initial_message = initial_message
-        self.selections = fxCallback(discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1), callback=self.callback)
+        self.selections = fxCallback(discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1),
+                                     callback=self.callback)
 
         for category_id, category in self.cog.conf_categories.items():
-            self.selections.add_option(label=category.get('label', None), value=str(category_id),description=category.get('description', None))
+            self.selections.add_option(label=category.get('label', None), value=str(category_id),
+                                       description=category.get('description', None))
 
         self.add_item(self.selections)
         self.menu_message = await self.thread.recipient.send(
@@ -187,7 +187,8 @@ class Categorymoverplugin(commands.Cog):
         """
         if not target:
             raise commands.BadArgument("Category does not exist")
-        await ctx.send(f"Options for: <#{target.id}>", view=CategoryViewButtons(target, self))
+        await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Options for {target.mention}"),
+                       view=CategoryViewButtons(target, self))
 
     async def _update_config(self):
         await self.db.find_one_and_update(
