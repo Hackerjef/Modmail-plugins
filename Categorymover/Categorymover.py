@@ -26,6 +26,7 @@ class Category(typing.TypedDict):
 
 class CategoryViewButtons(discord.ui.View):
     def __init__(self, target: discord.CategoryChannel, cog: 'Categorymoverplugin', *, timeout=180):
+        super().__init__(timeout=timeout)
         self.cog = cog
         self.target = target
 
@@ -34,7 +35,8 @@ class CategoryViewButtons(discord.ui.View):
             self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.danger, label="Delete", emoji="🚮"), callback=self.delete_category))
         else:
             self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.success, label="Create", emoji="✏"), callback=self.create_category))
-        super().__init__(timeout=timeout)
+
+
 
     async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.edit_message(content=f"create_category")
