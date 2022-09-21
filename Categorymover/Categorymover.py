@@ -47,8 +47,8 @@ class SelectMenu(discord.ui.View):
         category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=int(self.selections.values[0]))
         await self.disband(category)
 
-    # FIXME:
     async def on_timeout(self):
+        print("TIMEOUT")
         await self.disband(move_to=None)
 
     async def disband(self, move_to=None):
