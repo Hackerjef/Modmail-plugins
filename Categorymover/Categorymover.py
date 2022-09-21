@@ -31,13 +31,16 @@ class SelectMenu(discord.ui.View):
         self.initial_message = initial_message
 
         selections = discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1)
+
         for category, description in self.cog.categories.items():
             selections.add_option(label="category", value=str(category), description=description)
         self.add_item(selections)
-        self.menu_message = await self.thread.recipient.send(content="Pick:", view=self)
+        self.menu_message = await self.thread.recipient.send(embed=discord.Embed(color=self.cog.bot.main_color, description=self.cog.menu_description), view=self)
         return self
 
     async def select_callback(self, select, interaction):
+        print(select)
+        print(interaction)
         moved_to = None
         await self.disband(moved_to)
 
@@ -50,7 +53,6 @@ class SelectMenu(discord.ui.View):
         else:
             pass
         del self.cog.running_responses[discord.Object(id=self.thread.id)]
-        pass
 
     async def _get_pings(self, category_id):  # noqa
         ping_ids = self.cog.categories_ping.get(category_id, [])
@@ -93,7 +95,7 @@ class Categorymoverplugin(commands.Cog):
         if not threadMenu:
             return
 
-        if message.id in (threadMenu.menu.id, threadMenu.initial_message.id, threadMenu.thread.genesis_message.id):
+        if message.id in (threadMenu.menu_message.id, threadMenu.initial_message.id, threadMenu.thread.genesis_message.id):
             return
         await self.running_responses[thread.id].disband()
 
