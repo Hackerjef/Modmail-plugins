@@ -30,20 +30,32 @@ class CategoryViewButtons(discord.ui.View):
         self.cog = cog
         self.target = target
 
-        if target.id in self.cog.conf_categories:
-            self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.primary, label="Edit", emoji="✍"), callback=self.edit_category))
-            self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.danger, label="Delete", emoji="🚮"), callback=self.delete_category))
-        else:
-            self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.success, label="Create", emoji="✏"), callback=self.create_category))
+        for child in self.children:
+            print(child)
+            print(dir(child))
+        # if target.id in self.cog.conf_categories:
+        #     self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.primary, label="Edit", emoji="✍"), callback=self.edit_category))
+        #     self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.danger, label="Delete", emoji="🚮"), callback=self.delete_category))
+        # else:
+        #     self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.success, label="Create", emoji="✏"), callback=self.create_category))
 
+    @discord.ui.button(style=discord.ButtonStyle.success, label="Create", emoji="✏", custom_id='create')
     async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.edit_message(content=f"create_category")
 
+    @discord.ui.button(style=discord.ButtonStyle.primary, label="Edit", emoji="✍", custom_id='edit')
     async def edit_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.edit_message(content=f"edit_category")
 
+    @discord.ui.button(style=discord.ButtonStyle.danger, label="Delete", emoji="🚮", custom_id='delete')
     async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.edit_message(content=f"delete_category")
+
+    @discord.ui.button(label="Cancel", custom_id='cancel')
+    async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+        for child in self.children:
+            child.disabled = True
+        await interaction.response.edit_message(view=self)
 
 
 class SelectMenu(discord.ui.View):
