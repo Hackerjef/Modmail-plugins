@@ -24,6 +24,7 @@ class SelectMenu(discord.ui.View):
         self.thread: typing.Optional[Thread] = None
         self.initial_message: typing.Optional[Message] = None
         self.menu_message: typing.Optional[Message] = None
+        self.selections: typing.Optional[discord.ui.Select] = None
 
     @classmethod
     async def create(cls, cog, thread, initial_message):
@@ -31,21 +32,20 @@ class SelectMenu(discord.ui.View):
         self.cog = cog
         self.thread = thread
         self.initial_message = initial_message
-
-        selections = discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1)
-        selections.callback = self.callback
+        self.selections = discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1)
+        self.selections.callback = self.callback
 
         for category, description in self.cog.categories.items():
-            selections.add_option(label="category", value=str(category), description=description)
+            self.selections.add_option(label="category", value=str(category), description=description)
 
-        self.add_item(selections)
+        self.add_item(self.selections)
         self.menu_message = await self.thread.recipient.send(embed=discord.Embed(color=self.cog.bot.main_color, description=self.cog.menu_description), view=self)
         return self
 
     async def callback(self, interaction: discord.Interaction):
         print("UWU")
         await interaction.response.defer(thinking=True)
-        print(self.values[0])
+        print(self.selections.values[0])
         moved_to = None
         await self.disband(moved_to)
         #await interaction.response.send_message(content=f"Your choice is {self.values[0]}!",ephemeral=True)
