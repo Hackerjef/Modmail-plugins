@@ -95,7 +95,8 @@ class Categorymoverplugin(commands.Cog):
         if not threadMenu:
             return
 
-        if message.id in (threadMenu.menu_message.id, threadMenu.initial_message.id, threadMenu.thread.genesis_message.id):
+        gm = await threadMenu.thread.get_genesis_message()
+        if message.id in (threadMenu.menu_message.id, threadMenu.initial_message.id, gm.id):
             return
         await self.running_responses[thread.id].disband()
 
