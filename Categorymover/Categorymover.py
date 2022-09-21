@@ -55,7 +55,7 @@ class SelectMenu(discord.ui.View):
             pass
         else:
             pass
-        del self.cog.running_responses[discord.Object(id=self.thread.id)]
+        del self.cog.running_responses[self.thread.id]
 
     async def _get_pings(self, category_id):  # noqa
         ping_ids = self.cog.categories_ping.get(category_id, [])
@@ -77,7 +77,7 @@ class Categorymoverplugin(commands.Cog):
         self.bot = bot
         self.db = bot.plugin_db.get_partition(self)
         self.logger = getLogger("CategoryMover")
-        self.running_responses: dict[Snowflake, ReactionMenu] = {}  # userid, reactionMenu
+        self.running_responses: dict[typing.Union[Snowflake, int], ReactionMenu] = {}  # userid, reactionMenu
 
         # settings
         self.enabled = True
