@@ -14,6 +14,8 @@ from core.thread import Thread
 # emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️9️⃣"]
 menu_description = "Please pick a category for your inquery"
 
+# TODO: FIX THE WHOLE FUCKING THING
+
 
 class SelectMenu(discord.ui.View):
     def __init__(self):
@@ -31,16 +33,17 @@ class SelectMenu(discord.ui.View):
         self.initial_message = initial_message
 
         selections = discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1)
+        selections.callback = self.callback
 
         for category, description in self.cog.categories.items():
             selections.add_option(label="category", value=str(category), description=description)
 
         self.add_item(selections)
         self.menu_message = await self.thread.recipient.send(embed=discord.Embed(color=self.cog.bot.main_color, description=self.cog.menu_description), view=self)
-
         return self
 
     async def callback(self, interaction: discord.Interaction):
+        print("UWU")
         await interaction.response.defer(thinking=True)
         print(self.values[0])
         moved_to = None
