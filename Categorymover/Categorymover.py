@@ -34,15 +34,18 @@ class SelectMenu(discord.ui.View):
 
         for category, description in self.cog.categories.items():
             selections.add_option(label="category", value=str(category), description=description)
+
         self.add_item(selections)
         self.menu_message = await self.thread.recipient.send(embed=discord.Embed(color=self.cog.bot.main_color, description=self.cog.menu_description), view=self)
+
         return self
 
-    async def select_callback(self, select, interaction):
-        print(select)
-        print(interaction)
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(thinking=True)
+        print(self.values[0])
         moved_to = None
         await self.disband(moved_to)
+        #await interaction.response.send_message(content=f"Your choice is {self.values[0]}!",ephemeral=True)
 
     async def on_timeout(self):
         await self.disband(moved_to=None)
