@@ -52,10 +52,12 @@ class SelectMenu(discord.ui.View):
         await self.disband(move_to=None)
 
     async def disband(self, move_to=None):
+        self.stop()
         if move_to:
             await self.thread.channel.move(category=move_to, end=True, sync_permissions=True, reason="Thread was moved by Reaction menu within modmail")
             await self.thread.channel.send(content=await self._get_pings(move_to.id), embed=discord.Embed(description=f"Moved to <#{move_to.id}>", color=self.cog.bot.main_color))
-            await self.menu_message.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(move_to.id, 'Unknown')}`"))
+            self.clear_items()
+            await self.menu_message.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(move_to.id, 'Unknown')}`"), view=self)
         else:
             await self.menu_message.delete()
         del self.cog.running_responses[self.thread.id]
