@@ -19,7 +19,7 @@ menu_description = "Please pick a category for your inquery"
 
 class SelectMenu(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=3000)
+        super().__init__(timeout=300)
         self.cog: typing.Optional[Categorymoverplugin] = None
         self.thread: typing.Optional[Thread] = None
         self.initial_message: typing.Optional[Message] = None
@@ -43,21 +43,21 @@ class SelectMenu(discord.ui.View):
         return self
 
     async def callback(self, interaction: discord.Interaction):
-        print("UWU")
-        await interaction.response.defer(thinking=True)
-        print(self.selections.values[0])
-        moved_to = None
-        await self.disband(moved_to)
-        #await interaction.response.send_message(content=f"Your choice is {self.values[0]}!",ephemeral=True)
+        await interaction.response.defer()
+        category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=self.selections.values[0])
+        await self.disband(category)
 
+    # FIXME:
     async def on_timeout(self):
-        await self.disband(moved_to=None)
+        await self.disband(move_to=None)
 
-    async def disband(self, moved_to=None):
-        if moved_to:
-            pass
+    async def disband(self, move_to=None):
+        if move_to:
+            await self.thread.channel.move(category=move_to, end=True, sync_permissions=True, reason="Thread was moved by Reaction menu within modmail")
+            await self.thread.channel.send(content=await self._get_pings(move_to.id), embed=discord.Embed(description=f"Moved to <#{move_to.id}>", color=self.cog.bot.main_color))
+            await self.menu_message.edit(embed=discord.Embed(color=self.cog.bot.main_color, description=f"✅ Moved to `{self.cog.categories.get(move_to.id, 'Unknown')}`"))
         else:
-            pass
+            await self.menu_message.delete()
         del self.cog.running_responses[self.thread.id]
 
     async def _get_pings(self, category_id):  # noqa
@@ -113,8 +113,7 @@ class Categorymoverplugin(commands.Cog):
 
         # Assuming this message is created from a contact like function or if there is one or more recipients
         if creator or len(thread.recipients) > 1:
-            self.logger.info(
-                f"Ignoring thread for user {str(thread.recipient)} ({thread.recipient.id}) Created by contact like function or thread has more then one recipients")
+            self.logger.info(f"Ignoring thread for user {str(thread.recipient)} ({thread.recipient.id}) Created by contact like function or thread has more then one recipients")
             return
 
         self.running_responses[thread.id] = await SelectMenu.create(self, thread, initial_message)
