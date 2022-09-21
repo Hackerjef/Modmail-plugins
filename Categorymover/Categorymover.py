@@ -44,7 +44,7 @@ class SelectMenu(discord.ui.View):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=self.selections.values[0])
+        category = discord.utils.get(self.cog.bot.modmail_guild.categories, id=int(self.selections.values[0]))
         await self.disband(category)
 
     # FIXME:
