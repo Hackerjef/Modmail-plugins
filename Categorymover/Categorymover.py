@@ -31,17 +31,13 @@ class CategoryViewButtons(discord.ui.View):
         self.target = target
 
         for child in self.children:
+            child.callback = self.__getattribute__(child.custom_id) #qa
             if target.id in self.cog.conf_categories:
                 if child.custom_id == 'create_category':  # noqa
                     child.disabled = True
             else:
                 if child.custom_id in ('edit_category', 'delete_category'): # noqa
                     child.disabled = True
-        # if target.id in self.cog.conf_categories:
-        #     self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.primary, label="Edit", emoji="✍"), callback=self.edit_category))
-        #     self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.danger, label="Delete", emoji="🚮"), callback=self.delete_category))
-        # else:
-        #     self.add_item(item=fxCallback(discord.ui.Button(style=discord.ButtonStyle.success, label="Create", emoji="✏"), callback=self.create_category))
 
     @discord.ui.button(style=discord.ButtonStyle.success, label="Create", custom_id='create_category')
     async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -58,7 +54,7 @@ class CategoryViewButtons(discord.ui.View):
         button.disabled = True
         await interaction.message.edit_message(content=f"delete_category")
 
-    @discord.ui.button(label="Cancel")
+    @discord.ui.button(label="Cancel", custom_id='cancel_category')
     async def cancel_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         for child in self.children:
             child.disabled = True
