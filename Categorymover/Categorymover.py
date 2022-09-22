@@ -52,7 +52,7 @@ class CategoryViewButtons(discord.ui.View):
         await interaction.response.edit_message(content=f"delete_category")
 
     @discord.ui.button(label="Cancel", custom_id='cancel')
-    async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def cancel_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         for child in self.children:
             child.disabled = True
         await interaction.response.edit_message(view=self)
