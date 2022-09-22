@@ -41,21 +41,24 @@ class CategoryViewButtons(discord.ui.View):
 
     @discord.ui.button(style=discord.ButtonStyle.success, label="Create", emoji="✏")
     async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.edit_message(content=f"create_category")
+        button.disabled = True
+        await interaction.message.edit_message(content=f"create_category")
 
     @discord.ui.button(style=discord.ButtonStyle.primary, label="Edit", emoji="✍")
     async def edit_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.edit_message(content=f"edit_category")
+        button.disabled = True
+        await interaction.message.edit_message(content=f"edit_category")
 
     @discord.ui.button(style=discord.ButtonStyle.danger, label="Delete", emoji="🚮")
     async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.edit_message(content=f"delete_category")
+        button.disabled = True
+        await interaction.message.edit_message(content=f"delete_category")
 
     @discord.ui.button(label="Cancel")
     async def cancel_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         for child in self.children:
             child.disabled = True
-        await interaction.response.edit_message(view=self)
+        await interaction.message.edit_message(view=self)
 
 
 class SelectMenu(discord.ui.View):
