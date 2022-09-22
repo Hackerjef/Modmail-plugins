@@ -31,7 +31,6 @@ class CategoryViewButtons(discord.ui.View):
         self.target = target
 
         for child in self.children:
-            child.callback = self.__getattribute__(child.custom_id) #qa
             if target.id in self.cog.conf_categories:
                 if child.custom_id == 'create_category':  # noqa
                     child.disabled = True
@@ -43,22 +42,30 @@ class CategoryViewButtons(discord.ui.View):
     async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         button.disabled = True
         await interaction.message.edit_message(content=f"create_category")
+        self.value = button.custom_id
+        self.stop()
 
     @discord.ui.button(style=discord.ButtonStyle.primary, label="Edit", custom_id='edit_category')
     async def edit_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         button.disabled = True
         await interaction.message.edit_message(content=f"edit_category")
+        self.value = button.custom_id
+        self.stop()
 
     @discord.ui.button(style=discord.ButtonStyle.danger, label="Delete", custom_id='delete_category')
     async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         button.disabled = True
         await interaction.message.edit_message(content=f"delete_category")
+        self.value = button.custom_id
+        self.stop()
 
-    @discord.ui.button(label="Cancel", custom_id='cancel_category')
+    @discord.ui.button(label="Cancel")
     async def cancel_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         for child in self.children:
             child.disabled = True
         await interaction.message.edit_message(view=self)
+        self.value = button.custom_id
+        self.stop()
 
 
 class SelectMenu(discord.ui.View):
@@ -202,8 +209,10 @@ class Categorymoverplugin(commands.Cog):
         """
         if not target:
             raise commands.BadArgument("Category does not exist")
-        await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Options for {target.mention}"),
-                       view=CategoryViewButtons(target, self))
+        view = CategoryViewButtons(target, self)
+        await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Options for {target.mention}"), view=view)
+        await view.wait()
+        print(view.value)
 
     async def _update_config(self):
         await self.db.find_one_and_update(
