@@ -134,6 +134,9 @@ class Categorymoverplugin(commands.Cog):
     """Move threads automatically to reduce the worry for thread limit as well as better organization"""
 
     def __init__(self, bot):
+        #tmp
+        self.CategoryViewButtons = CategoryViewButtons
+
         self.bot = bot
         self.db = bot.plugin_db.get_partition(self)
         self.logger = getLogger("CategoryMover")
