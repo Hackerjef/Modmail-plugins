@@ -42,21 +42,18 @@ class CategoryViewButtons(discord.ui.View):
     async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         button.disabled = True
         await interaction.message.edit_message(content=f"create_category")
-        self.value = button.custom_id
         self.stop()
 
     @discord.ui.button(style=discord.ButtonStyle.primary, label="Edit", custom_id='edit_category')
     async def edit_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         button.disabled = True
         await interaction.message.edit_message(content=f"edit_category")
-        self.value = button.custom_id
         self.stop()
 
     @discord.ui.button(style=discord.ButtonStyle.danger, label="Delete", custom_id='delete_category')
     async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         button.disabled = True
         await interaction.message.edit_message(content=f"delete_category")
-        self.value = button.custom_id
         self.stop()
 
     @discord.ui.button(label="Cancel")
@@ -64,7 +61,6 @@ class CategoryViewButtons(discord.ui.View):
         for child in self.children:
             child.disabled = True
         await interaction.message.edit_message(view=self)
-        self.value = button.custom_id
         self.stop()
 
 
