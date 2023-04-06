@@ -32,13 +32,6 @@ class CategoryViewButtons(discord.ui.View):
         self.cog = cog
         self.target = target
 
-        for child in self.children:
-            if target.id in self.cog.conf_categories:
-                if child.custom_id == 'create_category':  # noqa
-                    child.disabled = True
-            else:
-                if child.custom_id in ('edit_category', 'delete_category'): # noqa
-                    child.disabled = True
     #
     # @discord.ui.button(style=discord.ButtonStyle.success, label="Create", custom_id='create_category')
     # async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -211,9 +204,7 @@ class Categorymoverplugin(commands.Cog):
         """
         if not target:
             raise commands.BadArgument("Category does not exist")
-        view = CategoryViewButtons(target, self)
-        await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Options for {target.mention}"), view=view)
-        await view.wait()
+        await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Options for {target.mention}"), view=CategoryViewButtons(target, self))
 
     async def _update_config(self):
         await self.db.find_one_and_update(
