@@ -18,6 +18,8 @@ def fxCallback(item: discord.ui.Item, callback: typing.Callable) -> typing.Any:
     return item
 
 
+# TODO: CALLBACKS FOR BUTTONS | MODELS
+
 class Category(typing.TypedDict):
     label: str
     description: typing.Optional[str]
@@ -40,24 +42,28 @@ class CategoryViewButtons(discord.ui.View):
 
     @discord.ui.button(style=discord.ButtonStyle.success, label="Create", custom_id='create_category')
     async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+        print("cancel")
         button.disabled = True
         await interaction.message.edit_message(content=f"create_category")
         self.stop()
 
     @discord.ui.button(style=discord.ButtonStyle.primary, label="Edit", custom_id='edit_category')
     async def edit_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+        print("cancel")
         button.disabled = True
         await interaction.message.edit_message(content=f"edit_category")
         self.stop()
 
     @discord.ui.button(style=discord.ButtonStyle.danger, label="Delete", custom_id='delete_category')
     async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+        print("cancel")
         button.disabled = True
         await interaction.message.edit_message(content=f"delete_category")
         self.stop()
 
     @discord.ui.button(label="Cancel")
     async def cancel_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+        print("cancel")
         for child in self.children:
             child.disabled = True
         await interaction.message.edit_message(view=self)
@@ -96,7 +102,6 @@ class SelectMenu(discord.ui.View):
         await self.disband(discord.utils.get(self.cog.bot.modmail_guild.categories, id=int(self.selections.values[0])))
 
     async def on_timeout(self):
-        print("TIMEOUT")
         await self.disband(move_to=None)
 
     async def disband(self, move_to=None):
@@ -140,7 +145,7 @@ class Categorymoverplugin(commands.Cog):
         self.bot = bot
         self.db = bot.plugin_db.get_partition(self)
         self.logger = getLogger("CategoryMover")
-        # TODO: fix
+
         self.running_responses: dict[typing.Union[Snowflake, int], ReactionMenu] = {}  # userid, reactionMenu
 
         # settings
