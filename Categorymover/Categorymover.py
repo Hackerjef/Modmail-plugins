@@ -39,28 +39,28 @@ class CategoryViewButtons(discord.ui.View):
             else:
                 if child.custom_id in ('edit_category', 'delete_category'): # noqa
                     child.disabled = True
-
-    @discord.ui.button(style=discord.ButtonStyle.success, label="Create", custom_id='create_category')
-    async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-        print("cancel")
-        button.disabled = True
-        await interaction.message.edit_message(content=f"create_category")
-        self.stop()
-
-    @discord.ui.button(style=discord.ButtonStyle.primary, label="Edit", custom_id='edit_category')
-    async def edit_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-        print("cancel")
-        button.disabled = True
-        await interaction.message.edit_message(content=f"edit_category")
-        self.stop()
-
-    @discord.ui.button(style=discord.ButtonStyle.danger, label="Delete", custom_id='delete_category')
-    async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-        print("cancel")
-        button.disabled = True
-        await interaction.message.edit_message(content=f"delete_category")
-        self.stop()
-
+    #
+    # @discord.ui.button(style=discord.ButtonStyle.success, label="Create", custom_id='create_category')
+    # async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+    #     print("cancel")
+    #     button.disabled = True
+    #     await interaction.message.edit_message(content=f"create_category")
+    #     self.stop()
+    #
+    # @discord.ui.button(style=discord.ButtonStyle.primary, label="Edit", custom_id='edit_category')
+    # async def edit_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+    #     print("cancel")
+    #     button.disabled = True
+    #     await interaction.message.edit_message(content=f"edit_category")
+    #     self.stop()
+    #
+    # @discord.ui.button(style=discord.ButtonStyle.danger, label="Delete", custom_id='delete_category')
+    # async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
+    #     print("cancel")
+    #     button.disabled = True
+    #     await interaction.message.edit_message(content=f"delete_category")
+    #     self.stop()
+    #
     @discord.ui.button(label="Cancel")
     async def cancel_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         print("cancel")
@@ -216,7 +216,6 @@ class Categorymoverplugin(commands.Cog):
         view = CategoryViewButtons(target, self)
         await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Options for {target.mention}"), view=view)
         await view.wait()
-        print(view.value)
 
     async def _update_config(self):
         await self.db.find_one_and_update(
