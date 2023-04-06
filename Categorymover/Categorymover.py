@@ -26,19 +26,24 @@ class Category(typing.TypedDict):
     mentions: typing.Optional[list[Snowflake]]
 
 
-class CategoryViewButtons(discord.ui.View):
-    def __init__(self, target: discord.CategoryChannel, cog: 'Categorymoverplugin', *, timeout=180):
-        super().__init__(timeout=timeout)
-        self.cog = cog
-        self.target = target
+class ViewSettings(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        self.value = None
 
-    @discord.ui.button(label="Cancel")
-    async def cancel_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.defer()
-        await interaction.response.edit_message(content="Test")
-        print("cancel2")
+    # When the confirm button is pressed, set the inner value to `True` and
+    # stop the View from listening to more input.
+    # We also send the user an ephemeral message that we're confirming their choice.
+    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message('Confirming')
         self.stop()
-        print("cancel3")
+
+    # This one is similar to the confirmation button except sets the inner value to `False`
+    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message('Cancelling')
+        self.stop()
 
 class SelectMenu(discord.ui.View):
     def __init__(self):
@@ -109,9 +114,6 @@ class Categorymoverplugin(commands.Cog):
     """Move threads automatically to reduce the worry for thread limit as well as better organization"""
 
     def __init__(self, bot):
-        #tmp
-        self.CategoryViewButtons = CategoryViewButtons
-
         self.bot = bot
         self.db = bot.plugin_db.get_partition(self)
         self.logger = getLogger("CategoryMover")
@@ -183,7 +185,7 @@ class Categorymoverplugin(commands.Cog):
         """
         if not target:
             raise commands.BadArgument("Category does not exist")
-        await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Options for {target.mention}"), view=CategoryViewButtons(target, self))
+        await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Options for {target.mention}"), view=ViewSettings())
 
     async def _update_config(self):
         await self.db.find_one_and_update(
