@@ -57,12 +57,10 @@ class CategoryViewButtons(discord.ui.View):
     @discord.ui.button(label="Cancel")
     async def cancel_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         print("cancel")
-        await self.clear_items()
-        print("cancel2")
         await interaction.response().edit_message(view=self, content="Test")
-        print("cancel3")
+        print("cancel2")
         self.stop()
-        print("cancel4")
+        print("cancel3")
 
 class SelectMenu(discord.ui.View):
     def __init__(self):
