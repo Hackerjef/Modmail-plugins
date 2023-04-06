@@ -32,32 +32,9 @@ class CategoryViewButtons(discord.ui.View):
         self.cog = cog
         self.target = target
 
-    #
-    # @discord.ui.button(style=discord.ButtonStyle.success, label="Create", custom_id='create_category')
-    # async def create_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-    #     print("cancel")
-    #     button.disabled = True
-    #     await interaction.message.edit_message(content=f"create_category")
-    #     self.stop()
-    #
-    # @discord.ui.button(style=discord.ButtonStyle.primary, label="Edit", custom_id='edit_category')
-    # async def edit_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-    #     print("cancel")
-    #     button.disabled = True
-    #     await interaction.message.edit_message(content=f"edit_category")
-    #     self.stop()
-    #
-    # @discord.ui.button(style=discord.ButtonStyle.danger, label="Delete", custom_id='delete_category')
-    # async def delete_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-    #     print("cancel")
-    #     button.disabled = True
-    #     await interaction.message.edit_message(content=f"delete_category")
-    #     self.stop()
-    #
     @discord.ui.button(label="Cancel")
     async def cancel_category(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await self.clear_items()
-        await interaction.response().defer()
+        await interaction.response.defer()
         await interaction.response.edit_message(content="Test")
         print("cancel2")
         self.stop()
