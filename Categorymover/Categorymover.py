@@ -58,7 +58,7 @@ class CategoryViewButtons(discord.ui.View):
     async def cancel_category(self, button: discord.ui.Button, interaction: discord.Interaction):
         print("cancel")
         await self.clear_items()
-        await interaction.response().edit_message(view=self)
+        await interaction.response().edit_message(view=self, content="Test")
         self.stop()
 
 
