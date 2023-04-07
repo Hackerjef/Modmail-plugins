@@ -67,7 +67,8 @@ class CategorySettings(discord.ui.View):
         embed.set_footer(text="Last updated")
         embed.add_field(name="Label:", value=data.get("label", "N/A"))
         embed.add_field(name="Description:", value=data.get("description", "N/A"))
-        embed.add_field(name="Mentions:", value=" ".join(mentions))
+        if mentions:
+            embed.add_field(name="Mentions:", value=" ".join(mentions))
         return embed
 
     async def stop(self):
@@ -172,10 +173,10 @@ class Categorymoverplugin(commands.Cog):
 
     def search_id(self, _id):
         # roles > member > None
-        role = discord.utils.get(self.cog.bot.modmail_guild.roles, id=_id)
+        role = discord.utils.get(self.bot.modmail_guild.roles, id=_id)
         if role:
            return role
-        member = discord.utils.get(self.cog.bot.modmail_guild.members, id=_id)
+        member = discord.utils.get(self.bot.modmail_guild.members, id=_id)
         if member:
             return member
         return None
@@ -226,7 +227,7 @@ class Categorymoverplugin(commands.Cog):
         Usage: `cm toggle`
         """
         self.enabled = not self.enabled
-        await self._update_config()
+        await self.update_config()
         embed = discord.Embed(color=self.bot.main_color,
                               description="Guild member watch has been " + ("enabled" if self.enabled else "disabled"))
         return await ctx.reply(embed=embed)
