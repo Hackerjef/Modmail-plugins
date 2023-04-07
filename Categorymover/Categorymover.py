@@ -1,8 +1,9 @@
 import asyncio
 import typing
+from datetime import datetime
 
 import discord
-from discord import Message
+from discord import Message, ButtonStyle
 from discord.abc import Snowflake
 from discord.ext import commands
 
@@ -26,24 +27,69 @@ class Category(typing.TypedDict):
     mentions: typing.Optional[list[Snowflake]]
 
 
-class ViewSettings(discord.ui.View):
+class CategorySettings(discord.ui.View):
     def __init__(self):
         super().__init__()
-        self.value = None
+        self.cog: typing.Optional[Categorymoverplugin] = None
+        self.target: typing.Optional[discord.CategoryChannel] = None
+        self.message: typing.Optional[discord.Message] = None
 
-    # When the confirm button is pressed, set the inner value to `True` and
-    # stop the View from listening to more input.
-    # We also send the user an ephemeral message that we're confirming their choice.
-    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message('Confirming')
-        self.stop()
+    @classmethod
+    async def create_from_message(cls, msg, cog, target):
+        self = CategorySettings()
+        self.cog = cog
+        self.target = target
+        self.message = msg
+        await self._update_message()
+        return self
 
-    # This one is similar to the confirmation button except sets the inner value to `False`
-    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
-    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message('Cancelling')
-        self.stop()
+
+    async def _update_message(self):
+        # update buttons and embeds here :D
+        for child in self.children:
+            if child.custom_id == "delete_button":
+                child.disabled = self.target.id not in self.cog.conf_categories
+        await self.message.edit(embed=self._generate_embed(), view=self)
+
+
+    def _generate_embed(self):
+        data: Category = self.cog.conf_categories.get(self.target.id, {})
+
+        ids = data.get('mentions', [])
+        mentions = []
+        if ids:
+            for _id in ids:
+                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
+                if obj is not None:
+                    mentions.append(obj.mention)
+
+        embed = discord.Embed(title="Category Settings", description=f"For {self.target.mention} (`{self.target.id}`)", timestamp=datetime.now())
+        embed.set_footer(text="Last updated")
+        embed.add_field(name="Label:", value=data.get("label", "N/A"))
+        embed.add_field(name="Description:", value=data.get("description", "N/A"))
+        embed.add_field(name="Mentions:", value=" ".join(mentions))
+        return embed
+
+    async def stop(self):
+        self.clear_items()
+        await self._update_message()
+        super().stop()
+
+    async def on_timeout(self):
+        await self.stop()
+
+    @discord.ui.button(label='Delete', style=ButtonStyle.red, custom_id="delete_button")
+    async def Delete(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.cog.conf_categories.pop(self.target)
+        await self.cog.update_config()
+        await self.stop()
+
+
+    @discord.ui.button(label='Cancel', style=ButtonStyle.grey, custom_id="cancel_button")
+    async def Cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.delete_original_response()
+        await self.stop()
+
 
 class SelectMenu(discord.ui.View):
     def __init__(self):
@@ -68,8 +114,7 @@ class SelectMenu(discord.ui.View):
                                        description=category.get('description', None))
 
         self.add_item(self.selections)
-        self.menu_message = await self.thread.recipient.send(
-            embed=discord.Embed(color=self.cog.bot.main_color, description=self.cog.menu_description), view=self)
+        self.menu_message = await self.thread.recipient.send(embed=discord.Embed(color=self.cog.bot.main_color, description=self.cog.menu_description), view=self)
         return self
 
     async def callback(self, interaction: discord.Interaction):
@@ -122,7 +167,7 @@ class Categorymoverplugin(commands.Cog):
 
         # settings
         self.enabled = True
-        self.conf_categories: dict[Snowflake, Category] = {}
+        self.conf_categories: dict[typing.Union[Snowflake, int], Category] = {}
         self.menu_description = menu_description
         asyncio.create_task(self._set_options())
 
@@ -185,9 +230,10 @@ class Categorymoverplugin(commands.Cog):
         """
         if not target:
             raise commands.BadArgument("Category does not exist")
-        await ctx.send(embed=discord.Embed(color=self.bot.main_color, description=f"Options for {target.mention}"), view=ViewSettings())
+        msg = await ctx.send("Loading...")
+        await CategorySettings.create_from_message(msg, self, target)
 
-    async def _update_config(self):
+    async def update_config(self):
         await self.db.find_one_and_update(
             {"_id": "config"},
             {
@@ -204,7 +250,7 @@ class Categorymoverplugin(commands.Cog):
         config = await self.db.find_one({"_id": "config"})
 
         if config is None:
-            await self._update_config()
+            await self.update_config()
             return
 
         self.enabled = config.get("enabled", True)
