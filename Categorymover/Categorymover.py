@@ -59,7 +59,7 @@ class CategorySettings(discord.ui.View):
         mentions = []
         if ids:
             for _id in ids:
-                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
+                obj: typing.Union[discord.member.Member, discord.role.Role, None] = self.cog.search_id(_id)
                 if obj is not None:
                     mentions.append(obj.mention)
 
@@ -147,8 +147,7 @@ class SelectMenu(discord.ui.View):
         if ids:
             mentions = []
             for _id in ids:
-                obj: typing.Union[discord.member.Member, discord.role.Role] = discord.utils.get(
-                    self.cog.bot.modmail_guild.roles + self.cog.bot.modmail_guild.members, id=_id)
+                obj: typing.Union[discord.member.Member, discord.role.Role, None] = self.cog.search_id(_id)
                 if obj is not None:
                     mentions.append(obj.mention)
             return " ".join(mentions)
@@ -170,6 +169,16 @@ class Categorymoverplugin(commands.Cog):
         self.conf_categories: dict[typing.Union[Snowflake, int], Category] = {}
         self.menu_description = menu_description
         asyncio.create_task(self._set_options())
+
+    def search_id(self, _id):
+        # roles > member > None
+        role = discord.utils.get(self.cog.bot.modmail_guild.roles, id=_id)
+        if role:
+           return role
+        member = discord.utils.get(self.cog.bot.modmail_guild.members, id=_id)
+        if member:
+            return member
+        return None
 
     @commands.Cog.listener()
     async def on_thread_close(self, thread, closer, silent, delete_channel, message, scheduled):
