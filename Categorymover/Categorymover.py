@@ -1,5 +1,6 @@
 import asyncio
 import typing
+import uuid
 from datetime import datetime
 
 import discord
@@ -15,7 +16,7 @@ menu_description = "Please pick a category for your inquery"
 
 
 def fxCallback(item: discord.ui.Item, callback: typing.Callable) -> typing.Any:
-    item.callback = callback
+    #item.callback = callback
     return item
 
 
@@ -33,6 +34,7 @@ class CategorySettings(discord.ui.View):
         self.cog: typing.Optional[Categorymoverplugin] = None
         self.target: typing.Optional[discord.CategoryChannel] = None
         self.message: typing.Optional[discord.Message] = None
+        self.nuance: str = str(uuid.uuid4())
 
     @classmethod
     async def create_from_message(cls, msg, cog, target):
@@ -46,10 +48,16 @@ class CategorySettings(discord.ui.View):
 
     async def _update_message(self):
         # update buttons and embeds here :D
-        for child in self.children:
-            if child.custom_id == "delete_button":
-                child.disabled = self.target.id not in self.cog.conf_categories
+        self._update_buttons()
         await self.message.edit(embed=self._generate_embed(), view=self)
+
+
+    def _update_buttons(self):
+        self.clear_items()
+        self.add_item(discord.ui.Button(label="Create", style=ButtonStyle.green, disabled=False, custom_id=f"{self.nuance}_cm_create", emoji="✏"))
+        self.add_item(discord.ui.Button(label="Edit", style=ButtonStyle.blurple, disabled=False, custom_id=f"{self.nuance}_cm_edit", emoji="✍"))
+        self.add_item(discord.ui.Button(label="Delete", style=ButtonStyle.red, disabled=False, custom_id=f"{self.nuance}_cm_delete", emoji="🗑️"))
+        self.add_item(discord.ui.Button(label="Cancel", style=ButtonStyle.grey, disabled=False, custom_id=f"{self.nuance}_cm_cancel", emoji="❌"))
 
 
     def _generate_embed(self):
@@ -63,12 +71,12 @@ class CategorySettings(discord.ui.View):
                 if obj is not None:
                     mentions.append(obj.mention)
 
-        embed = discord.Embed(title="Category Settings", description=f"For {self.target.mention} (`{self.target.id}`)", timestamp=datetime.now())
+        embed = discord.Embed(title="Category Settings", description=f"For {self.target.mention} (`{self.target.id}`)", timestamp=datetime.now(), color=65535)
         embed.set_footer(text="Last updated")
-        embed.add_field(name="Label:", value=data.get("label", "N/A"))
-        embed.add_field(name="Description:", value=data.get("description", "N/A"))
+        embed.add_field(name="Label:", value=data.get("label", "N/A"), inline=False)
+        embed.add_field(name="Description:", value=data.get("description", "N/A"), inline=False)
         if mentions:
-            embed.add_field(name="Mentions:", value=" ".join(mentions))
+            embed.add_field(name="Mentions:", value=" ".join(mentions), inline=False)
         return embed
 
     async def stop(self):
@@ -79,18 +87,21 @@ class CategorySettings(discord.ui.View):
     async def on_timeout(self):
         await self.stop()
 
-    @discord.ui.button(label='Delete', style=ButtonStyle.red, custom_id="delete_button")
-    async def Delete(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.cog.conf_categories.pop(self.target)
-        await self.cog.update_config()
-        await self.stop()
-
-
-    @discord.ui.button(label='Cancel', style=ButtonStyle.grey, custom_id="cancel_button")
-    async def Cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.delete_original_response()
-        await self.stop()
-
+    # async def callback(self, interaction: discord.Interaction):
+    #     await interaction.response.defer()
+    #
+    # @discord.ui.button(label='Delete', style=ButtonStyle.red, custom_id="delete_button")
+    # async def Delete(self, interaction: discord.Interaction, button: discord.ui.Button):
+    #     self.cog.conf_categories.pop(self.target)
+    #     await self.cog.update_config()
+    #     await self.stop()
+    #
+    #
+    # @discord.ui.button(label='Cancel', style=ButtonStyle.grey, custom_id="cancel_button")
+    # async def Cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+    #     await interaction.delete_original_response()
+    #     await self.stop()
+    #
 
 class SelectMenu(discord.ui.View):
     def __init__(self):
@@ -100,6 +111,7 @@ class SelectMenu(discord.ui.View):
         self.initial_message: typing.Optional[Message] = None
         self.menu_message: typing.Optional[Message] = None
         self.selections: typing.Optional[discord.ui.Select] = None
+        self.nuance: str = str(uuid.uuid4())
 
     @classmethod
     async def create(cls, cog, thread, initial_message):
@@ -107,12 +119,11 @@ class SelectMenu(discord.ui.View):
         self.cog = cog
         self.thread = thread
         self.initial_message = initial_message
-        self.selections = fxCallback(discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1),
-                                     callback=self.callback)
+
+        self.selections = fxCallback(discord.ui.Select(placeholder="Choose a Category!", min_values=1, max_values=1, custom_id=f"{self.nuance}_cm_selectmenu"), callback=self.callback)
 
         for category_id, category in self.cog.conf_categories.items():
-            self.selections.add_option(label=category.get('label', None), value=str(category_id),
-                                       description=category.get('description', None))
+            self.selections.add_option(label=category.get('label', None), value=str(category_id), description=category.get('description', None))
 
         self.add_item(self.selections)
         self.menu_message = await self.thread.recipient.send(embed=discord.Embed(color=self.cog.bot.main_color, description=self.cog.menu_description), view=self)
