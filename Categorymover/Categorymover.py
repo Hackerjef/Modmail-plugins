@@ -88,9 +88,13 @@ class CategorySettings(discord.ui.View):
 
     @discord.ui.button(label="Delete", style=ButtonStyle.red, disabled=False, emoji="🗑️")
     async def Delete(self, interaction: discord.Interaction, button: discord.ui.Button):
+        print("1")
         self.cog.conf_categories.pop(self.target)
+        print("2")
         await self.cog.update_config()
+        print("3")
         await self.stop(interaction=interaction)
+        print("4")
 
 
     @discord.ui.button(label="Cancel", style=ButtonStyle.grey, disabled=False, emoji="❌")
