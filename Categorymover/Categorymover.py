@@ -47,17 +47,12 @@ class CategorySettings(discord.ui.View):
 
 
     async def _update_message(self):
-        # update buttons and embeds here :D
-        self._update_buttons()
         await self.message.edit(embed=self._generate_embed(), view=self)
 
-
-    def _update_buttons(self):
-        self.clear_items()
-        self.add_item(fxCallback(discord.ui.Button(label="Create", style=ButtonStyle.green, disabled=False, custom_id=f"{self.nuance}_cm_create", emoji="✏"), self.callback))
-        self.add_item(fxCallback(discord.ui.Button(label="Edit", style=ButtonStyle.blurple, disabled=False, custom_id=f"{self.nuance}_cm_edit", emoji="✍"), self.callback))
-        self.add_item(fxCallback(discord.ui.Button(label="Delete", style=ButtonStyle.red, disabled=False, custom_id=f"{self.nuance}_cm_delete", emoji="🗑️"), self.callback))
-        self.add_item(fxCallback(discord.ui.Button(label="Cancel", style=ButtonStyle.grey, disabled=False, custom_id=f"{self.nuance}_cm_cancel", emoji="❌"), self.callback))
+        # self.add_item(fxCallback(discord.ui.Button(label="Create", style=ButtonStyle.green, disabled=False, custom_id=f"{self.nuance}_cm_create", emoji="✏"), self.callback))
+        # self.add_item(fxCallback(discord.ui.Button(label="Edit", style=ButtonStyle.blurple, disabled=False, custom_id=f"{self.nuance}_cm_edit", emoji="✍"), self.callback))
+        # self.add_item(fxCallback(discord.ui.Button(label="Delete", style=ButtonStyle.red, disabled=False, custom_id=f"{self.nuance}_cm_delete", emoji="🗑️"), self.callback))
+        # self.add_item(fxCallback(discord.ui.Button(label="Cancel", style=ButtonStyle.grey, disabled=False, custom_id=f"{self.nuance}_cm_cancel", emoji="❌"), self.callback))
 
 
     def _generate_embed(self):
@@ -87,22 +82,21 @@ class CategorySettings(discord.ui.View):
     async def on_timeout(self):
         await self.stop()
 
-    async def callback(self, interaction: discord.Interaction):
+
+
+    @discord.ui.button(label="Delete", style=ButtonStyle.red, disabled=False, emoji="🗑️")
+    async def Delete(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.cog.conf_categories.pop(self.target)
+        await self.cog.update_config()
+        await self.stop()
+
+
+    @discord.ui.button(label="Cancel", style=ButtonStyle.grey, disabled=False, emoji="❌")
+    async def Cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
-        print("UwU")
-    #
-    # @discord.ui.button(label='Delete', style=ButtonStyle.red, custom_id="delete_button")
-    # async def Delete(self, interaction: discord.Interaction, button: discord.ui.Button):
-    #     self.cog.conf_categories.pop(self.target)
-    #     await self.cog.update_config()
-    #     await self.stop()
-    #
-    #
-    # @discord.ui.button(label='Cancel', style=ButtonStyle.grey, custom_id="cancel_button")
-    # async def Cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
-    #     await interaction.delete_original_response()
-    #     await self.stop()
-    #
+        await interaction.delete_original_response()
+        await self.stop()
+
 
 class SelectMenu(discord.ui.View):
     def __init__(self):
@@ -151,7 +145,10 @@ class SelectMenu(discord.ui.View):
                                                              description=f"✅ Moved to: {c.get('label', 'unknown')}"),
                                          view=self)
         else:
-            await self.menu_message.delete()
+            try:
+                await self.menu_message.delete()
+            except Exception: # noqa
+                pass
         del self.cog.running_responses[self.thread.id]
 
     async def _get_mentions(self, category_id):  # noqa
