@@ -16,7 +16,7 @@ menu_description = "Please pick a category for your inquery"
 
 
 def fxCallback(item: discord.ui.Item, callback: typing.Callable) -> typing.Any:
-    #item.callback = callback
+    item.callback = callback
     return item
 
 
@@ -54,10 +54,10 @@ class CategorySettings(discord.ui.View):
 
     def _update_buttons(self):
         self.clear_items()
-        self.add_item(discord.ui.Button(label="Create", style=ButtonStyle.green, disabled=False, custom_id=f"{self.nuance}_cm_create", emoji="✏"))
-        self.add_item(discord.ui.Button(label="Edit", style=ButtonStyle.blurple, disabled=False, custom_id=f"{self.nuance}_cm_edit", emoji="✍"))
-        self.add_item(discord.ui.Button(label="Delete", style=ButtonStyle.red, disabled=False, custom_id=f"{self.nuance}_cm_delete", emoji="🗑️"))
-        self.add_item(discord.ui.Button(label="Cancel", style=ButtonStyle.grey, disabled=False, custom_id=f"{self.nuance}_cm_cancel", emoji="❌"))
+        self.add_item(fxCallback(discord.ui.Button(label="Create", style=ButtonStyle.green, disabled=False, custom_id=f"{self.nuance}_cm_create", emoji="✏"), self.callback))
+        self.add_item(fxCallback(discord.ui.Button(label="Edit", style=ButtonStyle.blurple, disabled=False, custom_id=f"{self.nuance}_cm_edit", emoji="✍"), self.callback))
+        self.add_item(fxCallback(discord.ui.Button(label="Delete", style=ButtonStyle.red, disabled=False, custom_id=f"{self.nuance}_cm_delete", emoji="🗑️"), self.callback))
+        self.add_item(fxCallback(discord.ui.Button(label="Cancel", style=ButtonStyle.grey, disabled=False, custom_id=f"{self.nuance}_cm_cancel", emoji="❌"), self.callback))
 
 
     def _generate_embed(self):
@@ -87,8 +87,9 @@ class CategorySettings(discord.ui.View):
     async def on_timeout(self):
         await self.stop()
 
-    # async def callback(self, interaction: discord.Interaction):
-    #     await interaction.response.defer()
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        print("UwU")
     #
     # @discord.ui.button(label='Delete', style=ButtonStyle.red, custom_id="delete_button")
     # async def Delete(self, interaction: discord.Interaction, button: discord.ui.Button):
