@@ -77,7 +77,6 @@ class CategorySettings(discord.ui.View):
     async def stop(self, interaction=None):
         if interaction:
             await interaction.response.defer()
-
         await self._update_message(noview=True)
 
         super().stop()
@@ -86,7 +85,7 @@ class CategorySettings(discord.ui.View):
         await self.stop()
 
 
-    @discord.ui.button(label="Delete", style=ButtonStyle.red, disabled=False, emoji="🗑️", custom_id="fuck")
+    @discord.ui.button(label="Delete", style=ButtonStyle.red, disabled=False, emoji="🗑️", custom_id="aaaa")
     async def btn_Delete(self, interaction: discord.Interaction, button: discord.ui.Button):
         print("1")
         self.cog.conf_categories.pop(self.target)
@@ -97,7 +96,7 @@ class CategorySettings(discord.ui.View):
         print("4")
 
 
-    @discord.ui.button(label="Cancel", style=ButtonStyle.grey, disabled=False, emoji="❌", custom_id="you")
+    @discord.ui.button(label="Cancel", style=ButtonStyle.grey, disabled=False, emoji="❌", custom_id="yaaaaaaaou")
     async def btn_Cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.stop(interaction=interaction)
 
