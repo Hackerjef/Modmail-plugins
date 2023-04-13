@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 import typing
 import uuid
 from datetime import datetime
@@ -20,22 +21,33 @@ def fxCallback(item: discord.ui.Item, callback: typing.Callable) -> typing.Any:
     return item
 
 
-# TODO: CALLBACKS FOR BUTTONS | MODELS
-
 class Category(typing.TypedDict):
     label: str
     description: typing.Optional[str]
     mentions: typing.Optional[list[Snowflake]]
 
 
+class TextResp(discord.ui.Modal, title='Response'):
+    async def on_submit(self, interaction: discord.Interaction, /) -> None:
+        await interaction.response.defer()
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
+        traceback.print_exception(type(error), error, error.__traceback__)
+
+    def get_child_value(self, custom_id):
+        for child in self._children:
+            if child.custom_id == custom_id:
+                return child.__getattribute__("value")
+        raise Exception(f"Child {custom_id} not found")
+
+
 class CategorySettings(discord.ui.View):
     def __init__(self):
-        super().__init__()
+        super().__init__(timeout=1800)
         self.cog: typing.Optional[Categorymoverplugin] = None
         self.target: typing.Optional[discord.CategoryChannel] = None
         self.message: typing.Optional[discord.Message] = None
-        self.nuance: str = str(uuid.uuid4())
-
     @classmethod
     async def create_from_message(cls, msg, cog, target):
         self = CategorySettings()
@@ -46,13 +58,21 @@ class CategorySettings(discord.ui.View):
         return self
 
 
-    async def _update_message(self, noview=False):
-        await self.message.edit(content="", embed=self._generate_embed(), view=None if noview else self)
+    async def _update_message(self, interaction=None, noview=False):
+        if not noview:
+            for child in self.children:
+                if getattr(child, "custom_id") == "edit_description":
+                    child.disabled = self.target.id not in self.cog.conf_categories
+                    continue
 
-        # self.add_item(fxCallback(discord.ui.Button(label="Create", style=ButtonStyle.green, disabled=False, custom_id=f"{self.nuance}_cm_create", emoji="✏"), self.callback))
-        # self.add_item(fxCallback(discord.ui.Button(label="Edit", style=ButtonStyle.blurple, disabled=False, custom_id=f"{self.nuance}_cm_edit", emoji="✍"), self.callback))
-        # self.add_item(fxCallback(discord.ui.Button(label="Delete", style=ButtonStyle.red, disabled=False, custom_id=f"{self.nuance}_cm_delete", emoji="🗑️"), self.callback))
-        # self.add_item(fxCallback(discord.ui.Button(label="Cancel", style=ButtonStyle.grey, disabled=False, custom_id=f"{self.nuance}_cm_cancel", emoji="❌"), self.callback))
+                if getattr(child, "custom_id") == "clear":
+                    child.disabled = self.target.id not in self.cog.conf_categories
+                    continue
+
+        if interaction:
+            await interaction.response.edit_message(content=None, embed=self._generate_embed(), view=None if noview else self)
+        else:
+            await self.message.edit(content=None, embed=self._generate_embed(), view=None if noview else self)
 
 
     def _generate_embed(self):
@@ -65,39 +85,68 @@ class CategorySettings(discord.ui.View):
                 obj: typing.Union[discord.member.Member, discord.role.Role, None] = self.cog.search_id(_id)
                 if obj is not None:
                     mentions.append(obj.mention)
-
         embed = discord.Embed(title="Category Settings", description=f"For {self.target.mention} (`{self.target.id}`)", timestamp=datetime.now(), color=65535)
         embed.set_footer(text="Last updated")
         embed.add_field(name="Label:", value=data.get("label", "N/A"), inline=False)
         embed.add_field(name="Description:", value=data.get("description", "N/A"), inline=False)
         if mentions:
             embed.add_field(name="Mentions:", value=" ".join(mentions), inline=False)
+        else:
+            embed.add_field(name="Mentions:", value="N/A", inline=False)
         return embed
 
     async def stop(self, interaction=None):
-        if interaction:
-            await interaction.response.defer()
-        await self._update_message(noview=True)
-
+        await self._update_message(interaction=interaction, noview=True)
         super().stop()
 
     async def on_timeout(self):
         await self.stop()
 
 
-    @discord.ui.button(label="Delete", style=ButtonStyle.red, disabled=False, emoji="🗑️", custom_id="aaaa")
-    async def btn_Delete(self, interaction: discord.Interaction, button: discord.ui.Button):
-        print("1")
-        self.cog.conf_categories.pop(self.target)
-        print("2")
+    @discord.ui.button(label="Edit Label", style=ButtonStyle.blurple, disabled=False, custom_id="edit_label")
+    async def btn_edit_lbl(self, interaction: discord.Interaction, button: discord.ui.Button):
+        t = TextResp(timeout=120)
+        t.add_item(discord.ui.TextInput(custom_id="label", label="label:", placeholder="Please enter a name for the category", default=self.cog.conf_categories.get(self.target.id, {}).get('label', None), required=True))
+        await interaction.response.send_modal(t)
+        await t.wait()
+        if t.get_child_value('label') == "":
+            return
+        if self.target.id not in self.cog.conf_categories:
+            self.cog.conf_categories[self.target.id] = Category(label=t.get_child_value('label')) # noqa
+        else:
+            self.cog.conf_categories[self.target.id].update({'label': t.get_child_value('label')})
+
         await self.cog.update_config()
-        print("3")
-        await self.stop(interaction=interaction)
-        print("4")
+        await self._update_message()
+
+    @discord.ui.button(label="Edit Description", style=ButtonStyle.blurple, disabled=True, custom_id="edit_description")
+    async def btn_edit_des(self, interaction: discord.Interaction, button: discord.ui.Button):
+        description = TextResp(timeout=120)
+        description.add_item(discord.ui.TextInput(custom_id="description", label="Description:", placeholder="Please enter a description for the category (put N/A to remove)", default=self.cog.conf_categories.get(self.target.id, {}).get('description', 'N/A'), required=False))
+        await interaction.response.send_modal(description)
+        await description.wait()
+        if description.get_child_value('description') == "":
+            return
+
+        if description.get_child_value('description') == "N/A":
+            if 'description' in self.cog.conf_categories[self.target.id]:
+                self.cog.conf_categories[self.target.id].__delitem__('description')
+        else:
+            self.cog.conf_categories[self.target.id].update({'description': description.get_child_value('description')})
+        await self.cog.update_config()
+        await self._update_message()
+    @discord.ui.button(label="Clear Settings", style=ButtonStyle.red, disabled=True, custom_id="clear")
+    async def btn_delete(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.target.id in self.cog.conf_categories:
+            self.cog.conf_categories.pop(self.target.id)
+            await self.cog.update_config()
+        else:
+            self.cog.logger.warning(f"{self.target.id} is missing from config?")
+        await self._update_message(interaction=interaction)
 
 
-    @discord.ui.button(label="Cancel", style=ButtonStyle.grey, disabled=False, emoji="❌", custom_id="yaaaaaaaou")
-    async def btn_Cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label="Close", style=ButtonStyle.grey, disabled=False, custom_id="cancel")
+    async def btn_cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.stop(interaction=interaction)
 
 
@@ -179,7 +228,7 @@ class Categorymoverplugin(commands.Cog):
 
         # settings
         self.enabled = True
-        self.conf_categories: dict[typing.Union[Snowflake, int], Category] = {}
+        self.conf_categories: dict[int, Category] = {}
         self.menu_description = menu_description
         asyncio.create_task(self._set_options())
 
@@ -241,7 +290,7 @@ class Categorymoverplugin(commands.Cog):
         self.enabled = not self.enabled
         await self.update_config()
         embed = discord.Embed(color=self.bot.main_color,
-                              description="Guild member watch has been " + ("enabled" if self.enabled else "disabled"))
+                              description="Category mover has been " + ("enabled" if self.enabled else "disabled"))
         return await ctx.reply(embed=embed)
 
     @cm.command("category")
