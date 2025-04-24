@@ -4,6 +4,7 @@ import re
 import os
 from datetime import datetime
 import secrets
+from io import BytesIO
 
 import discord
 from discord.ext import commands
@@ -83,13 +84,13 @@ class Thread:
 
         if self.id:
             for i in cursor.execute(
-                "SELECT * FROM 'thread_messages' WHERE thread_id == ?", (self.id,)
+                    "SELECT * FROM 'thread_messages' WHERE thread_id == ?", (self.id,)
             ):
                 message = await ThreadMessage.from_data(bot, i)
                 if message.type_ == "command" and "close" in message.body:
                     self.closer = message.author
                 elif message.type_ == "system" and message.body.startswith(
-                    "Thread was opened by "
+                        "Thread was opened by "
                 ):
                     # user used the `newthread` command
                     mod = message.body[:21]  # gets name#discrim
@@ -223,7 +224,7 @@ class ThreadMessage:
                     "id": str(self.author.id),
                     "name": self.author.name,
                     "discriminator": self.author.discriminator,
-                    "avatar_url": str(self.author.avatar_url),
+                    "avatar_url": str(self.author.display_avatar.url),
                     "mod": self.type_ == "to_user",
                 }
                 if self.author
@@ -257,7 +258,6 @@ class DragoryMigrateRemux(commands.Cog):
             url = url or ctx.message.attachments[0].url
         except IndexError:
             await ctx.send("Provide an sqlite file as the attachment.")
-
 
         async with self.bot.session.get(url) as resp:
             # TODO: use BytesIO or sth
@@ -297,9 +297,7 @@ class DragoryMigrateRemux(commands.Cog):
             self.bot.config.snippets[name] = value
             self.output += f"Snippet {name} added: {value}\n"
 
-        tasks = []
-
-        prefix = self.bot.config["log_url_prefix"].strip("/")
+        prefix = self.bot.config["log_url_prefix"]
         if prefix == "NONE":
             prefix = ""
 
@@ -310,27 +308,20 @@ class DragoryMigrateRemux(commands.Cog):
             converted["key"] = key
             converted["_id"] = key
             await self.bot.db.logs.insert_one(converted)
-            log_url = f"{self.bot.config['log_url'].strip('/')}{prefix}/{key}"
+            log_url = f"{self.bot.config['log_url']}{prefix}/{key}"
             print(f"Posted thread log: {log_url}")
             self.output += f"Posted thread log: {log_url}\n"
 
         # Threads
         for row in c.execute("SELECT * FROM 'threads'"):
-            tasks.append(await convert_thread_log(row))
+            await convert_thread_log(row)
 
-        with ctx.typing():
-            await asyncio.gather(*tasks)
+        await self.bot.config.update()
+        conn.close()
+        os.remove("dragorydb.sqlite")
 
-            await self.bot.config.update()
-
-            async with self.bot.session.post(
-                "https://hastebin.com/documents", data=self.output
-            ) as resp:
-                key = (await resp.json())["key"]
-
-            await ctx.send(f"Done. Logs: https://hastebin.com/{key}")
-            conn.close()
-            os.remove("dragorydb.sqlite")
+        bytes_io = BytesIO(self.output.encode('utf-8'))
+        await ctx.send("Done!, Log output", file=discord.File(fp=bytes_io, filename='output.txt'))
 
 
 async def setup(bot):
