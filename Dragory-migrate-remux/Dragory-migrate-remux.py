@@ -315,7 +315,7 @@ class DragoryMigrateRemux(commands.Cog):
 
         # Threads
         for row in c.execute("SELECT * FROM 'threads'"):
-            tasks.append(convert_thread_log(row))
+            tasks.append(await convert_thread_log(row))
 
         with ctx.typing():
             await asyncio.gather(*tasks)
