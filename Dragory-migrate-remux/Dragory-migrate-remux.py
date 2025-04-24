@@ -115,14 +115,14 @@ class Thread:
                 "id": str(self.recipient.id),
                 "name": self.recipient.name,
                 "discriminator": self.recipient.discriminator,
-                "avatar_url": str(self.recipient.avatar_url),
+                "avatar_url": str(self.recipient.display_avatar.url),
                 "mod": False,
             },
             "creator": {
                 "id": str(self.creator.id),
                 "name": self.creator.name,
                 "discriminator": self.creator.discriminator,
-                "avatar_url": str(self.creator.avatar_url),
+                "avatar_url": str(self.creator.display_avatar.url),
                 "mod": self.creator_mod,
             },
             "messages": [m.serialize() for m in self.messages if m.serialize()],
@@ -132,7 +132,7 @@ class Thread:
                 "id": str(self.closer.id),
                 "name": self.closer.name,
                 "discriminator": self.closer.discriminator,
-                "avatar_url": str(self.closer.avatar_url),
+                "avatar_url": str(self.closer.display_avatar.url),
                 "mod": True,
             }
         return payload
@@ -257,6 +257,7 @@ class DragoryMigrateRemux(commands.Cog):
             url = url or ctx.message.attachments[0].url
         except IndexError:
             await ctx.send("Provide an sqlite file as the attachment.")
+
 
         async with self.bot.session.get(url) as resp:
             # TODO: use BytesIO or sth
